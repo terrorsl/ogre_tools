@@ -15,6 +15,9 @@ public:
 
 	bool LoadMesh(QString filename);
 
+	Ogre::SceneManager* CreateSceneManager();
+	void DeleteSceneManager(Ogre::SceneManager* sm);
+
 	void render(QPainter* painter);
 	void paintEvent(QPaintEvent* event);
 	void render();

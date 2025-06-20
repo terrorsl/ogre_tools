@@ -84,7 +84,7 @@ void QOgreWidget::Initialize()
 
 	Ogre::ResourceGroupManager::getSingleton().addResourceLocation("./", "FileSystem", "General");
 	Ogre::ResourceGroupManager::getSingleton().initialiseAllResourceGroups(false);
-	
+	/*
 	sm = root->createSceneManager(Ogre::ST_GENERIC, 1);
 
 	Ogre::Light* light = sm->createLight();
@@ -115,7 +115,7 @@ void QOgreWidget::Initialize()
 	const Ogre::ColourValue backgroundColour(0.2f, 0.4f, 0.6f);
 	compositorManager->createBasicWorkspaceDef(workspaceName, backgroundColour, Ogre::IdString());
 	compositorManager->addWorkspace(sm, window->getTexture(), camera, workspaceName, true);
-
+	*/
 	//LoadMesh("Cottage_FREE.mesh");
 
 	//root->renderOneFrame();
@@ -234,7 +234,7 @@ bool QOgreWidget::event(QEvent* event)
 			QSize size = re->size();
 			//window->requestResolution(size.width(), size.height());
 			window->windowMovedOrResized();
-			camera->setAspectRatio((float)size.width() / (float)size.height());
+			//camera->setAspectRatio((float)size.width() / (float)size.height());
 		}
 		break;
 	case QEvent::UpdateLater:
@@ -288,7 +288,7 @@ void QOgreWidget::keyReleaseEvent(QKeyEvent* e)
 };
 void QOgreWidget::resizeEvent(QResizeEvent* e)
 {
-	camera->setAspectRatio((float)e->size().width() / (float)e->size().height());
+	//camera->setAspectRatio((float)e->size().width() / (float)e->size().height());
 	window->windowMovedOrResized();
 };
 bool QOgreWidget::LoadMesh(QString filename)
@@ -372,4 +372,33 @@ Ogre::MeshPtr QOgreWidget::LoadMeshV1(QString filename)
 		printf("%s\n", ex.what());
 	}
 	return mesh;
+};
+Ogre::SceneManager* QOgreWidget::CreateSceneManager()
+{
+	Ogre::SceneManager* sm = root->createSceneManager(Ogre::ST_GENERIC, 1);
+	
+	// Create & setup camera
+	camera = sm->createCamera("Main Camera");
+
+	// Position it at 500 in Z direction
+	camera->setPosition(Ogre::Vector3(0, 5, 15));
+	// Look back along -Z
+	camera->lookAt(Ogre::Vector3(0, 0, 0));
+	camera->setNearClipDistance(0.2f);
+	camera->setFarClipDistance(1000.0f);
+	camera->setAspectRatio((float)width() / (float)height());
+
+	// Setup a basic compositor with a blue clear colour
+	Ogre::CompositorManager2* compositorManager = root->getCompositorManager2();
+	const Ogre::String workspaceName("Demo Workspace");
+	const Ogre::ColourValue backgroundColour(0.2f, 0.4f, 0.6f);
+	compositorManager->createBasicWorkspaceDef(workspaceName, backgroundColour, Ogre::IdString());
+	compositorManager->addWorkspace(sm, window->getTexture(), camera, workspaceName, true);
+
+	return sm;
+}
+void QOgreWidget::DeleteSceneManager(Ogre::SceneManager* sm)
+{
+	root->getCompositorManager2()->removeAllWorkspaces();
+	root->destroySceneManager(sm);
 };
