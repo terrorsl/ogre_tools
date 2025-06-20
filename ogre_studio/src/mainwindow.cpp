@@ -4,6 +4,8 @@
 #include<qtimer.h>
 #include<qfiledialog.h>
 
+#include"os_level.h"
+
 MainWindow::MainWindow():ui(new Ui::MainWindow())
 {
 	ui->setupUi(this);
@@ -24,6 +26,11 @@ MainWindow::~MainWindow()
 void MainWindow::renderOgre()
 {
 	ui->ogrewidget->render();
+};
+void MainWindow::on_actionNew_triggered()
+{
+	std::string name("default.level.json");
+	OgreStudioLevel* level = OGRE_NEW OgreStudioLevel(name);
 };
 void MainWindow::on_actionOpen_triggered()
 {
