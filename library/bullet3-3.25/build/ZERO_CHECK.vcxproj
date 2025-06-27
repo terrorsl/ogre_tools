@@ -1,0 +1,174 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project DefaultTargets="Build" ToolsVersion="17.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <PropertyGroup>
+    <PreferredToolArchitecture>x64</PreferredToolArchitecture>
+  </PropertyGroup>
+  <PropertyGroup>
+    <ResolveNugetPackages>false</ResolveNugetPackages>
+  </PropertyGroup>
+  <ItemGroup Label="ProjectConfigurations">
+    <ProjectConfiguration Include="Debug|x64">
+      <Configuration>Debug</Configuration>
+      <Platform>x64</Platform>
+    </ProjectConfiguration>
+    <ProjectConfiguration Include="Release|x64">
+      <Configuration>Release</Configuration>
+      <Platform>x64</Platform>
+    </ProjectConfiguration>
+    <ProjectConfiguration Include="MinSizeRel|x64">
+      <Configuration>MinSizeRel</Configuration>
+      <Platform>x64</Platform>
+    </ProjectConfiguration>
+    <ProjectConfiguration Include="RelWithDebInfo|x64">
+      <Configuration>RelWithDebInfo</Configuration>
+      <Platform>x64</Platform>
+    </ProjectConfiguration>
+  </ItemGroup>
+  <PropertyGroup Label="Globals">
+    <ProjectGuid>{75E1FFAC-18DA-3854-A4E4-FB383A76BCDD}</ProjectGuid>
+    <Keyword>Win32Proj</Keyword>
+    <WindowsTargetPlatformVersion>10.0.22000.0</WindowsTargetPlatformVersion>
+    <Platform>x64</Platform>
+    <ProjectName>ZERO_CHECK</ProjectName>
+    <VCProjectUpgraderObjectName>NoUpgrade</VCProjectUpgraderObjectName>
+  </PropertyGroup>
+  <Import Project="$(VCTargetsPath)\Microsoft.Cpp.Default.props" />
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'" Label="Configuration">
+    <ConfigurationType>Utility</ConfigurationType>
+    <CharacterSet>MultiByte</CharacterSet>
+    <PlatformToolset>v143</PlatformToolset>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'" Label="Configuration">
+    <ConfigurationType>Utility</ConfigurationType>
+    <CharacterSet>MultiByte</CharacterSet>
+    <PlatformToolset>v143</PlatformToolset>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='MinSizeRel|x64'" Label="Configuration">
+    <ConfigurationType>Utility</ConfigurationType>
+    <CharacterSet>MultiByte</CharacterSet>
+    <PlatformToolset>v143</PlatformToolset>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='RelWithDebInfo|x64'" Label="Configuration">
+    <ConfigurationType>Utility</ConfigurationType>
+    <CharacterSet>MultiByte</CharacterSet>
+    <PlatformToolset>v143</PlatformToolset>
+  </PropertyGroup>
+  <Import Project="$(VCTargetsPath)\Microsoft.Cpp.props" />
+  <ImportGroup Label="ExtensionSettings">
+  </ImportGroup>
+  <ImportGroup Label="PropertySheets">
+    <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
+  </ImportGroup>
+  <PropertyGroup Label="UserMacros" />
+  <PropertyGroup>
+    <_ProjectFileVersion>10.0.20506.1</_ProjectFileVersion>
+    <IntDir Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">$(Platform)\$(Configuration)\$(ProjectName)\</IntDir>
+    <IntDir Condition="'$(Configuration)|$(Platform)'=='Release|x64'">$(Platform)\$(Configuration)\$(ProjectName)\</IntDir>
+    <IntDir Condition="'$(Configuration)|$(Platform)'=='MinSizeRel|x64'">$(Platform)\$(Configuration)\$(ProjectName)\</IntDir>
+    <IntDir Condition="'$(Configuration)|$(Platform)'=='RelWithDebInfo|x64'">$(Platform)\$(Configuration)\$(ProjectName)\</IntDir>
+  </PropertyGroup>
+  <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
+    <Midl>
+      <AdditionalIncludeDirectories>%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <OutputDirectory>$(ProjectDir)/$(IntDir)</OutputDirectory>
+      <HeaderFileName>%(Filename).h</HeaderFileName>
+      <TypeLibraryName>%(Filename).tlb</TypeLibraryName>
+      <InterfaceIdentifierFileName>%(Filename)_i.c</InterfaceIdentifierFileName>
+      <ProxyFileName>%(Filename)_p.c</ProxyFileName>
+    </Midl>
+  </ItemDefinitionGroup>
+  <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
+    <Midl>
+      <AdditionalIncludeDirectories>%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <OutputDirectory>$(ProjectDir)/$(IntDir)</OutputDirectory>
+      <HeaderFileName>%(Filename).h</HeaderFileName>
+      <TypeLibraryName>%(Filename).tlb</TypeLibraryName>
+      <InterfaceIdentifierFileName>%(Filename)_i.c</InterfaceIdentifierFileName>
+      <ProxyFileName>%(Filename)_p.c</ProxyFileName>
+    </Midl>
+  </ItemDefinitionGroup>
+  <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='MinSizeRel|x64'">
+    <Midl>
+      <AdditionalIncludeDirectories>%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <OutputDirectory>$(ProjectDir)/$(IntDir)</OutputDirectory>
+      <HeaderFileName>%(Filename).h</HeaderFileName>
+      <TypeLibraryName>%(Filename).tlb</TypeLibraryName>
+      <InterfaceIdentifierFileName>%(Filename)_i.c</InterfaceIdentifierFileName>
+      <ProxyFileName>%(Filename)_p.c</ProxyFileName>
+    </Midl>
+  </ItemDefinitionGroup>
+  <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='RelWithDebInfo|x64'">
+    <Midl>
+      <AdditionalIncludeDirectories>%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <OutputDirectory>$(ProjectDir)/$(IntDir)</OutputDirectory>
+      <HeaderFileName>%(Filename).h</HeaderFileName>
+      <TypeLibraryName>%(Filename).tlb</TypeLibraryName>
+      <InterfaceIdentifierFileName>%(Filename)_i.c</InterfaceIdentifierFileName>
+      <ProxyFileName>%(Filename)_p.c</ProxyFileName>
+    </Midl>
+  </ItemDefinitionGroup>
+  <ItemGroup>
+    <CustomBuild Include="E:\work\ogre_tools\library\bullet3-3.25\build\CMakeFiles\309ec466090fb93ee99db47d35a612e1\generate.stamp.rule">
+      <UseUtf8Encoding>Always</UseUtf8Encoding>
+      <Message Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">Checking Build System</Message>
+      <Command Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">setlocal
+"C:\Program Files\CMake\bin\cmake.exe" -SE:/work/ogre_tools/library/bullet3-3.25 -BE:/work/ogre_tools/library/bullet3-3.25/build --check-stamp-list CMakeFiles/generate.stamp.list --vs-solution-file E:/work/ogre_tools/library/bullet3-3.25/build/BULLET_PHYSICS.sln
+if %errorlevel% neq 0 goto :cmEnd
+:cmEnd
+endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
+:cmErrorLevel
+exit /b %1
+:cmDone
+if %errorlevel% neq 0 goto :VCEnd</Command>
+      <AdditionalInputs Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">C:\Program Files\CMake\share\cmake-3.24\Modules\CMakeCInformation.cmake;C:\Program Files\CMake\share\cmake-3.24\Modules\CMakeCXXInformation.cmake;C:\Program Files\CMake\share\cmake-3.24\Modules\CMakeCommonLanguageInclude.cmake;C:\Program Files\CMake\share\cmake-3.24\Modules\CMakeGenericSystem.cmake;C:\Program Files\CMake\share\cmake-3.24\Modules\CMakeInitializeConfigs.cmake;C:\Program Files\CMake\share\cmake-3.24\Modules\CMakeLanguageInformation.cmake;C:\Program Files\CMake\share\cmake-3.24\Modules\CMakeRCInformation.cmake;C:\Program Files\CMake\share\cmake-3.24\Modules\CMakeSystemSpecificInformation.cmake;C:\Program Files\CMake\share\cmake-3.24\Modules\CMakeSystemSpecificInitialize.cmake;C:\Program Files\CMake\share\cmake-3.24\Modules\Compiler\CMakeCommonCompilerMacros.cmake;C:\Program Files\CMake\share\cmake-3.24\Modules\Compiler\MSVC-C.cmake;C:\Program Files\CMake\share\cmake-3.24\Modules\Compiler\MSVC-CXX.cmake;C:\Program Files\CMake\share\cmake-3.24\Modules\Compiler\MSVC.cmake;C:\Program Files\CMake\share\cmake-3.24\Modules\FindOpenGL.cmake;C:\Program Files\CMake\share\cmake-3.24\Modules\FindPackageHandleStandardArgs.cmake;C:\Program Files\CMake\share\cmake-3.24\Modules\FindPackageMessage.cmake;C:\Program Files\CMake\share\cmake-3.24\Modules\Platform\Windows-MSVC-C.cmake;C:\Program Files\CMake\share\cmake-3.24\Modules\Platform\Windows-MSVC-CXX.cmake;C:\Program Files\CMake\share\cmake-3.24\Modules\Platform\Windows-MSVC.cmake;C:\Program Files\CMake\share\cmake-3.24\Modules\Platform\Windows.cmake;C:\Program Files\CMake\share\cmake-3.24\Modules\Platform\WindowsPaths.cmake;E:\work\ogre_tools\library\bullet3-3.25\BulletConfig.cmake.in;E:\work\ogre_tools\library\bullet3-3.25\CMakeLists.txt;E:\work\ogre_tools\library\bullet3-3.25\Extras\BulletRobotics\CMakeLists.txt;E:\work\ogre_tools\library\bullet3-3.25\Extras\CMakeLists.txt;E:\work\ogre_tools\library\bullet3-3.25\Extras\ConvexDecomposition\CMakeLists.txt;E:\work\ogre_tools\library\bullet3-3.25\Extras\GIMPACTUtils\CMakeLists.txt;E:\work\ogre_tools\library\bullet3-3.25\Extras\HACD\CMakeLists.txt;E:\work\ogre_tools\library\bullet3-3.25\Extras\InverseDynamics\CMakeLists.txt;E:\work\ogre_tools\library\bullet3-3.25\Extras\Serialize\BulletFileLoader\CMakeLists.txt;E:\work\ogre_tools\library\bullet3-3.25\Extras\Serialize\BulletWorldImporter\CMakeLists.txt;E:\work\ogre_tools\library\bullet3-3.25\Extras\Serialize\BulletXmlWorldImporter\CMakeLists.txt;E:\work\ogre_tools\library\bullet3-3.25\Extras\Serialize\CMakeLists.txt;E:\work\ogre_tools\library\bullet3-3.25\build\CMakeFiles\3.24.2\CMakeCCompiler.cmake;E:\work\ogre_tools\library\bullet3-3.25\build\CMakeFiles\3.24.2\CMakeCXXCompiler.cmake;E:\work\ogre_tools\library\bullet3-3.25\build\CMakeFiles\3.24.2\CMakeRCCompiler.cmake;E:\work\ogre_tools\library\bullet3-3.25\build\CMakeFiles\3.24.2\CMakeSystem.cmake;E:\work\ogre_tools\library\bullet3-3.25\src\Bullet3Common\CMakeLists.txt;E:\work\ogre_tools\library\bullet3-3.25\src\BulletCollision\CMakeLists.txt;E:\work\ogre_tools\library\bullet3-3.25\src\BulletDynamics\CMakeLists.txt;E:\work\ogre_tools\library\bullet3-3.25\src\BulletInverseDynamics\CMakeLists.txt;E:\work\ogre_tools\library\bullet3-3.25\src\BulletSoftBody\CMakeLists.txt;E:\work\ogre_tools\library\bullet3-3.25\src\CMakeLists.txt;E:\work\ogre_tools\library\bullet3-3.25\src\LinearMath\CMakeLists.txt;E:\work\ogre_tools\library\bullet3-3.25\test\BulletDynamics\CMakeLists.txt;E:\work\ogre_tools\library\bullet3-3.25\test\BulletDynamics\pendulum\CMakeLists.txt;E:\work\ogre_tools\library\bullet3-3.25\test\CMakeLists.txt;E:\work\ogre_tools\library\bullet3-3.25\test\collision\CMakeLists.txt;E:\work\ogre_tools\library\bullet3-3.25\test\gtest-1.7.0\CMakeLists.txt;%(AdditionalInputs)</AdditionalInputs>
+      <Outputs Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">E:\work\ogre_tools\library\bullet3-3.25\build\CMakeFiles\generate.stamp;E:\work\ogre_tools\library\bullet3-3.25\build\Extras\CMakeFiles\generate.stamp;E:\work\ogre_tools\library\bullet3-3.25\build\src\CMakeFiles\generate.stamp;E:\work\ogre_tools\library\bullet3-3.25\build\test\CMakeFiles\generate.stamp;E:\work\ogre_tools\library\bullet3-3.25\build\Extras\InverseDynamics\CMakeFiles\generate.stamp;E:\work\ogre_tools\library\bullet3-3.25\build\Extras\BulletRobotics\CMakeFiles\generate.stamp;E:\work\ogre_tools\library\bullet3-3.25\build\Extras\Serialize\CMakeFiles\generate.stamp;E:\work\ogre_tools\library\bullet3-3.25\build\Extras\ConvexDecomposition\CMakeFiles\generate.stamp;E:\work\ogre_tools\library\bullet3-3.25\build\Extras\HACD\CMakeFiles\generate.stamp;E:\work\ogre_tools\library\bullet3-3.25\build\Extras\GIMPACTUtils\CMakeFiles\generate.stamp;E:\work\ogre_tools\library\bullet3-3.25\build\Extras\Serialize\BulletFileLoader\CMakeFiles\generate.stamp;E:\work\ogre_tools\library\bullet3-3.25\build\Extras\Serialize\BulletXmlWorldImporter\CMakeFiles\generate.stamp;E:\work\ogre_tools\library\bullet3-3.25\build\Extras\Serialize\BulletWorldImporter\CMakeFiles\generate.stamp;E:\work\ogre_tools\library\bullet3-3.25\build\src\BulletInverseDynamics\CMakeFiles\generate.stamp;E:\work\ogre_tools\library\bullet3-3.25\build\src\BulletSoftBody\CMakeFiles\generate.stamp;E:\work\ogre_tools\library\bullet3-3.25\build\src\BulletCollision\CMakeFiles\generate.stamp;E:\work\ogre_tools\library\bullet3-3.25\build\src\BulletDynamics\CMakeFiles\generate.stamp;E:\work\ogre_tools\library\bullet3-3.25\build\src\LinearMath\CMakeFiles\generate.stamp;E:\work\ogre_tools\library\bullet3-3.25\build\src\Bullet3Common\CMakeFiles\generate.stamp;E:\work\ogre_tools\library\bullet3-3.25\build\test\gtest-1.7.0\CMakeFiles\generate.stamp;E:\work\ogre_tools\library\bullet3-3.25\build\test\collision\CMakeFiles\generate.stamp;E:\work\ogre_tools\library\bullet3-3.25\build\test\BulletDynamics\CMakeFiles\generate.stamp;E:\work\ogre_tools\library\bullet3-3.25\build\test\BulletDynamics\pendulum\CMakeFiles\generate.stamp</Outputs>
+      <LinkObjects Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">false</LinkObjects>
+      <Message Condition="'$(Configuration)|$(Platform)'=='Release|x64'">Checking Build System</Message>
+      <Command Condition="'$(Configuration)|$(Platform)'=='Release|x64'">setlocal
+"C:\Program Files\CMake\bin\cmake.exe" -SE:/work/ogre_tools/library/bullet3-3.25 -BE:/work/ogre_tools/library/bullet3-3.25/build --check-stamp-list CMakeFiles/generate.stamp.list --vs-solution-file E:/work/ogre_tools/library/bullet3-3.25/build/BULLET_PHYSICS.sln
+if %errorlevel% neq 0 goto :cmEnd
+:cmEnd
+endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
+:cmErrorLevel
+exit /b %1
+:cmDone
+if %errorlevel% neq 0 goto :VCEnd</Command>
+      <AdditionalInputs Condition="'$(Configuration)|$(Platform)'=='Release|x64'">C:\Program Files\CMake\share\cmake-3.24\Modules\CMakeCInformation.cmake;C:\Program Files\CMake\share\cmake-3.24\Modules\CMakeCXXInformation.cmake;C:\Program Files\CMake\share\cmake-3.24\Modules\CMakeCommonLanguageInclude.cmake;C:\Program Files\CMake\share\cmake-3.24\Modules\CMakeGenericSystem.cmake;C:\Program Files\CMake\share\cmake-3.24\Modules\CMakeInitializeConfigs.cmake;C:\Program Files\CMake\share\cmake-3.24\Modules\CMakeLanguageInformation.cmake;C:\Program Files\CMake\share\cmake-3.24\Modules\CMakeRCInformation.cmake;C:\Program Files\CMake\share\cmake-3.24\Modules\CMakeSystemSpecificInformation.cmake;C:\Program Files\CMake\share\cmake-3.24\Modules\CMakeSystemSpecificInitialize.cmake;C:\Program Files\CMake\share\cmake-3.24\Modules\Compiler\CMakeCommonCompilerMacros.cmake;C:\Program Files\CMake\share\cmake-3.24\Modules\Compiler\MSVC-C.cmake;C:\Program Files\CMake\share\cmake-3.24\Modules\Compiler\MSVC-CXX.cmake;C:\Program Files\CMake\share\cmake-3.24\Modules\Compiler\MSVC.cmake;C:\Program Files\CMake\share\cmake-3.24\Modules\FindOpenGL.cmake;C:\Program Files\CMake\share\cmake-3.24\Modules\FindPackageHandleStandardArgs.cmake;C:\Program Files\CMake\share\cmake-3.24\Modules\FindPackageMessage.cmake;C:\Program Files\CMake\share\cmake-3.24\Modules\Platform\Windows-MSVC-C.cmake;C:\Program Files\CMake\share\cmake-3.24\Modules\Platform\Windows-MSVC-CXX.cmake;C:\Program Files\CMake\share\cmake-3.24\Modules\Platform\Windows-MSVC.cmake;C:\Program Files\CMake\share\cmake-3.24\Modules\Platform\Windows.cmake;C:\Program Files\CMake\share\cmake-3.24\Modules\Platform\WindowsPaths.cmake;E:\work\ogre_tools\library\bullet3-3.25\BulletConfig.cmake.in;E:\work\ogre_tools\library\bullet3-3.25\CMakeLists.txt;E:\work\ogre_tools\library\bullet3-3.25\Extras\BulletRobotics\CMakeLists.txt;E:\work\ogre_tools\library\bullet3-3.25\Extras\CMakeLists.txt;E:\work\ogre_tools\library\bullet3-3.25\Extras\ConvexDecomposition\CMakeLists.txt;E:\work\ogre_tools\library\bullet3-3.25\Extras\GIMPACTUtils\CMakeLists.txt;E:\work\ogre_tools\library\bullet3-3.25\Extras\HACD\CMakeLists.txt;E:\work\ogre_tools\library\bullet3-3.25\Extras\InverseDynamics\CMakeLists.txt;E:\work\ogre_tools\library\bullet3-3.25\Extras\Serialize\BulletFileLoader\CMakeLists.txt;E:\work\ogre_tools\library\bullet3-3.25\Extras\Serialize\BulletWorldImporter\CMakeLists.txt;E:\work\ogre_tools\library\bullet3-3.25\Extras\Serialize\BulletXmlWorldImporter\CMakeLists.txt;E:\work\ogre_tools\library\bullet3-3.25\Extras\Serialize\CMakeLists.txt;E:\work\ogre_tools\library\bullet3-3.25\build\CMakeFiles\3.24.2\CMakeCCompiler.cmake;E:\work\ogre_tools\library\bullet3-3.25\build\CMakeFiles\3.24.2\CMakeCXXCompiler.cmake;E:\work\ogre_tools\library\bullet3-3.25\build\CMakeFiles\3.24.2\CMakeRCCompiler.cmake;E:\work\ogre_tools\library\bullet3-3.25\build\CMakeFiles\3.24.2\CMakeSystem.cmake;E:\work\ogre_tools\library\bullet3-3.25\src\Bullet3Common\CMakeLists.txt;E:\work\ogre_tools\library\bullet3-3.25\src\BulletCollision\CMakeLists.txt;E:\work\ogre_tools\library\bullet3-3.25\src\BulletDynamics\CMakeLists.txt;E:\work\ogre_tools\library\bullet3-3.25\src\BulletInverseDynamics\CMakeLists.txt;E:\work\ogre_tools\library\bullet3-3.25\src\BulletSoftBody\CMakeLists.txt;E:\work\ogre_tools\library\bullet3-3.25\src\CMakeLists.txt;E:\work\ogre_tools\library\bullet3-3.25\src\LinearMath\CMakeLists.txt;E:\work\ogre_tools\library\bullet3-3.25\test\BulletDynamics\CMakeLists.txt;E:\work\ogre_tools\library\bullet3-3.25\test\BulletDynamics\pendulum\CMakeLists.txt;E:\work\ogre_tools\library\bullet3-3.25\test\CMakeLists.txt;E:\work\ogre_tools\library\bullet3-3.25\test\collision\CMakeLists.txt;E:\work\ogre_tools\library\bullet3-3.25\test\gtest-1.7.0\CMakeLists.txt;%(AdditionalInputs)</AdditionalInputs>
+      <Outputs Condition="'$(Configuration)|$(Platform)'=='Release|x64'">E:\work\ogre_tools\library\bullet3-3.25\build\CMakeFiles\generate.stamp;E:\work\ogre_tools\library\bullet3-3.25\build\Extras\CMakeFiles\generate.stamp;E:\work\ogre_tools\library\bullet3-3.25\build\src\CMakeFiles\generate.stamp;E:\work\ogre_tools\library\bullet3-3.25\build\test\CMakeFiles\generate.stamp;E:\work\ogre_tools\library\bullet3-3.25\build\Extras\InverseDynamics\CMakeFiles\generate.stamp;E:\work\ogre_tools\library\bullet3-3.25\build\Extras\BulletRobotics\CMakeFiles\generate.stamp;E:\work\ogre_tools\library\bullet3-3.25\build\Extras\Serialize\CMakeFiles\generate.stamp;E:\work\ogre_tools\library\bullet3-3.25\build\Extras\ConvexDecomposition\CMakeFiles\generate.stamp;E:\work\ogre_tools\library\bullet3-3.25\build\Extras\HACD\CMakeFiles\generate.stamp;E:\work\ogre_tools\library\bullet3-3.25\build\Extras\GIMPACTUtils\CMakeFiles\generate.stamp;E:\work\ogre_tools\library\bullet3-3.25\build\Extras\Serialize\BulletFileLoader\CMakeFiles\generate.stamp;E:\work\ogre_tools\library\bullet3-3.25\build\Extras\Serialize\BulletXmlWorldImporter\CMakeFiles\generate.stamp;E:\work\ogre_tools\library\bullet3-3.25\build\Extras\Serialize\BulletWorldImporter\CMakeFiles\generate.stamp;E:\work\ogre_tools\library\bullet3-3.25\build\src\BulletInverseDynamics\CMakeFiles\generate.stamp;E:\work\ogre_tools\library\bullet3-3.25\build\src\BulletSoftBody\CMakeFiles\generate.stamp;E:\work\ogre_tools\library\bullet3-3.25\build\src\BulletCollision\CMakeFiles\generate.stamp;E:\work\ogre_tools\library\bullet3-3.25\build\src\BulletDynamics\CMakeFiles\generate.stamp;E:\work\ogre_tools\library\bullet3-3.25\build\src\LinearMath\CMakeFiles\generate.stamp;E:\work\ogre_tools\library\bullet3-3.25\build\src\Bullet3Common\CMakeFiles\generate.stamp;E:\work\ogre_tools\library\bullet3-3.25\build\test\gtest-1.7.0\CMakeFiles\generate.stamp;E:\work\ogre_tools\library\bullet3-3.25\build\test\collision\CMakeFiles\generate.stamp;E:\work\ogre_tools\library\bullet3-3.25\build\test\BulletDynamics\CMakeFiles\generate.stamp;E:\work\ogre_tools\library\bullet3-3.25\build\test\BulletDynamics\pendulum\CMakeFiles\generate.stamp</Outputs>
+      <LinkObjects Condition="'$(Configuration)|$(Platform)'=='Release|x64'">false</LinkObjects>
+      <Message Condition="'$(Configuration)|$(Platform)'=='MinSizeRel|x64'">Checking Build System</Message>
+      <Command Condition="'$(Configuration)|$(Platform)'=='MinSizeRel|x64'">setlocal
+"C:\Program Files\CMake\bin\cmake.exe" -SE:/work/ogre_tools/library/bullet3-3.25 -BE:/work/ogre_tools/library/bullet3-3.25/build --check-stamp-list CMakeFiles/generate.stamp.list --vs-solution-file E:/work/ogre_tools/library/bullet3-3.25/build/BULLET_PHYSICS.sln
+if %errorlevel% neq 0 goto :cmEnd
+:cmEnd
+endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
+:cmErrorLevel
+exit /b %1
+:cmDone
+if %errorlevel% neq 0 goto :VCEnd</Command>
+      <AdditionalInputs Condition="'$(Configuration)|$(Platform)'=='MinSizeRel|x64'">C:\Program Files\CMake\share\cmake-3.24\Modules\CMakeCInformation.cmake;C:\Program Files\CMake\share\cmake-3.24\Modules\CMakeCXXInformation.cmake;C:\Program Files\CMake\share\cmake-3.24\Modules\CMakeCommonLanguageInclude.cmake;C:\Program Files\CMake\share\cmake-3.24\Modules\CMakeGenericSystem.cmake;C:\Program Files\CMake\share\cmake-3.24\Modules\CMakeInitializeConfigs.cmake;C:\Program Files\CMake\share\cmake-3.24\Modules\CMakeLanguageInformation.cmake;C:\Program Files\CMake\share\cmake-3.24\Modules\CMakeRCInformation.cmake;C:\Program Files\CMake\share\cmake-3.24\Modules\CMakeSystemSpecificInformation.cmake;C:\Program Files\CMake\share\cmake-3.24\Modules\CMakeSystemSpecificInitialize.cmake;C:\Program Files\CMake\share\cmake-3.24\Modules\Compiler\CMakeCommonCompilerMacros.cmake;C:\Program Files\CMake\share\cmake-3.24\Modules\Compiler\MSVC-C.cmake;C:\Program Files\CMake\share\cmake-3.24\Modules\Compiler\MSVC-CXX.cmake;C:\Program Files\CMake\share\cmake-3.24\Modules\Compiler\MSVC.cmake;C:\Program Files\CMake\share\cmake-3.24\Modules\FindOpenGL.cmake;C:\Program Files\CMake\share\cmake-3.24\Modules\FindPackageHandleStandardArgs.cmake;C:\Program Files\CMake\share\cmake-3.24\Modules\FindPackageMessage.cmake;C:\Program Files\CMake\share\cmake-3.24\Modules\Platform\Windows-MSVC-C.cmake;C:\Program Files\CMake\share\cmake-3.24\Modules\Platform\Windows-MSVC-CXX.cmake;C:\Program Files\CMake\share\cmake-3.24\Modules\Platform\Windows-MSVC.cmake;C:\Program Files\CMake\share\cmake-3.24\Modules\Platform\Windows.cmake;C:\Program Files\CMake\share\cmake-3.24\Modules\Platform\WindowsPaths.cmake;E:\work\ogre_tools\library\bullet3-3.25\BulletConfig.cmake.in;E:\work\ogre_tools\library\bullet3-3.25\CMakeLists.txt;E:\work\ogre_tools\library\bullet3-3.25\Extras\BulletRobotics\CMakeLists.txt;E:\work\ogre_tools\library\bullet3-3.25\Extras\CMakeLists.txt;E:\work\ogre_tools\library\bullet3-3.25\Extras\ConvexDecomposition\CMakeLists.txt;E:\work\ogre_tools\library\bullet3-3.25\Extras\GIMPACTUtils\CMakeLists.txt;E:\work\ogre_tools\library\bullet3-3.25\Extras\HACD\CMakeLists.txt;E:\work\ogre_tools\library\bullet3-3.25\Extras\InverseDynamics\CMakeLists.txt;E:\work\ogre_tools\library\bullet3-3.25\Extras\Serialize\BulletFileLoader\CMakeLists.txt;E:\work\ogre_tools\library\bullet3-3.25\Extras\Serialize\BulletWorldImporter\CMakeLists.txt;E:\work\ogre_tools\library\bullet3-3.25\Extras\Serialize\BulletXmlWorldImporter\CMakeLists.txt;E:\work\ogre_tools\library\bullet3-3.25\Extras\Serialize\CMakeLists.txt;E:\work\ogre_tools\library\bullet3-3.25\build\CMakeFiles\3.24.2\CMakeCCompiler.cmake;E:\work\ogre_tools\library\bullet3-3.25\build\CMakeFiles\3.24.2\CMakeCXXCompiler.cmake;E:\work\ogre_tools\library\bullet3-3.25\build\CMakeFiles\3.24.2\CMakeRCCompiler.cmake;E:\work\ogre_tools\library\bullet3-3.25\build\CMakeFiles\3.24.2\CMakeSystem.cmake;E:\work\ogre_tools\library\bullet3-3.25\src\Bullet3Common\CMakeLists.txt;E:\work\ogre_tools\library\bullet3-3.25\src\BulletCollision\CMakeLists.txt;E:\work\ogre_tools\library\bullet3-3.25\src\BulletDynamics\CMakeLists.txt;E:\work\ogre_tools\library\bullet3-3.25\src\BulletInverseDynamics\CMakeLists.txt;E:\work\ogre_tools\library\bullet3-3.25\src\BulletSoftBody\CMakeLists.txt;E:\work\ogre_tools\library\bullet3-3.25\src\CMakeLists.txt;E:\work\ogre_tools\library\bullet3-3.25\src\LinearMath\CMakeLists.txt;E:\work\ogre_tools\library\bullet3-3.25\test\BulletDynamics\CMakeLists.txt;E:\work\ogre_tools\library\bullet3-3.25\test\BulletDynamics\pendulum\CMakeLists.txt;E:\work\ogre_tools\library\bullet3-3.25\test\CMakeLists.txt;E:\work\ogre_tools\library\bullet3-3.25\test\collision\CMakeLists.txt;E:\work\ogre_tools\library\bullet3-3.25\test\gtest-1.7.0\CMakeLists.txt;%(AdditionalInputs)</AdditionalInputs>
+      <Outputs Condition="'$(Configuration)|$(Platform)'=='MinSizeRel|x64'">E:\work\ogre_tools\library\bullet3-3.25\build\CMakeFiles\generate.stamp;E:\work\ogre_tools\library\bullet3-3.25\build\Extras\CMakeFiles\generate.stamp;E:\work\ogre_tools\library\bullet3-3.25\build\src\CMakeFiles\generate.stamp;E:\work\ogre_tools\library\bullet3-3.25\build\test\CMakeFiles\generate.stamp;E:\work\ogre_tools\library\bullet3-3.25\build\Extras\InverseDynamics\CMakeFiles\generate.stamp;E:\work\ogre_tools\library\bullet3-3.25\build\Extras\BulletRobotics\CMakeFiles\generate.stamp;E:\work\ogre_tools\library\bullet3-3.25\build\Extras\Serialize\CMakeFiles\generate.stamp;E:\work\ogre_tools\library\bullet3-3.25\build\Extras\ConvexDecomposition\CMakeFiles\generate.stamp;E:\work\ogre_tools\library\bullet3-3.25\build\Extras\HACD\CMakeFiles\generate.stamp;E:\work\ogre_tools\library\bullet3-3.25\build\Extras\GIMPACTUtils\CMakeFiles\generate.stamp;E:\work\ogre_tools\library\bullet3-3.25\build\Extras\Serialize\BulletFileLoader\CMakeFiles\generate.stamp;E:\work\ogre_tools\library\bullet3-3.25\build\Extras\Serialize\BulletXmlWorldImporter\CMakeFiles\generate.stamp;E:\work\ogre_tools\library\bullet3-3.25\build\Extras\Serialize\BulletWorldImporter\CMakeFiles\generate.stamp;E:\work\ogre_tools\library\bullet3-3.25\build\src\BulletInverseDynamics\CMakeFiles\generate.stamp;E:\work\ogre_tools\library\bullet3-3.25\build\src\BulletSoftBody\CMakeFiles\generate.stamp;E:\work\ogre_tools\library\bullet3-3.25\build\src\BulletCollision\CMakeFiles\generate.stamp;E:\work\ogre_tools\library\bullet3-3.25\build\src\BulletDynamics\CMakeFiles\generate.stamp;E:\work\ogre_tools\library\bullet3-3.25\build\src\LinearMath\CMakeFiles\generate.stamp;E:\work\ogre_tools\library\bullet3-3.25\build\src\Bullet3Common\CMakeFiles\generate.stamp;E:\work\ogre_tools\library\bullet3-3.25\build\test\gtest-1.7.0\CMakeFiles\generate.stamp;E:\work\ogre_tools\library\bullet3-3.25\build\test\collision\CMakeFiles\generate.stamp;E:\work\ogre_tools\library\bullet3-3.25\build\test\BulletDynamics\CMakeFiles\generate.stamp;E:\work\ogre_tools\library\bullet3-3.25\build\test\BulletDynamics\pendulum\CMakeFiles\generate.stamp</Outputs>
+      <LinkObjects Condition="'$(Configuration)|$(Platform)'=='MinSizeRel|x64'">false</LinkObjects>
+      <Message Condition="'$(Configuration)|$(Platform)'=='RelWithDebInfo|x64'">Checking Build System</Message>
+      <Command Condition="'$(Configuration)|$(Platform)'=='RelWithDebInfo|x64'">setlocal
+"C:\Program Files\CMake\bin\cmake.exe" -SE:/work/ogre_tools/library/bullet3-3.25 -BE:/work/ogre_tools/library/bullet3-3.25/build --check-stamp-list CMakeFiles/generate.stamp.list --vs-solution-file E:/work/ogre_tools/library/bullet3-3.25/build/BULLET_PHYSICS.sln
+if %errorlevel% neq 0 goto :cmEnd
+:cmEnd
+endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
+:cmErrorLevel
+exit /b %1
+:cmDone
+if %errorlevel% neq 0 goto :VCEnd</Command>
+      <AdditionalInputs Condition="'$(Configuration)|$(Platform)'=='RelWithDebInfo|x64'">C:\Program Files\CMake\share\cmake-3.24\Modules\CMakeCInformation.cmake;C:\Program Files\CMake\share\cmake-3.24\Modules\CMakeCXXInformation.cmake;C:\Program Files\CMake\share\cmake-3.24\Modules\CMakeCommonLanguageInclude.cmake;C:\Program Files\CMake\share\cmake-3.24\Modules\CMakeGenericSystem.cmake;C:\Program Files\CMake\share\cmake-3.24\Modules\CMakeInitializeConfigs.cmake;C:\Program Files\CMake\share\cmake-3.24\Modules\CMakeLanguageInformation.cmake;C:\Program Files\CMake\share\cmake-3.24\Modules\CMakeRCInformation.cmake;C:\Program Files\CMake\share\cmake-3.24\Modules\CMakeSystemSpecificInformation.cmake;C:\Program Files\CMake\share\cmake-3.24\Modules\CMakeSystemSpecificInitialize.cmake;C:\Program Files\CMake\share\cmake-3.24\Modules\Compiler\CMakeCommonCompilerMacros.cmake;C:\Program Files\CMake\share\cmake-3.24\Modules\Compiler\MSVC-C.cmake;C:\Program Files\CMake\share\cmake-3.24\Modules\Compiler\MSVC-CXX.cmake;C:\Program Files\CMake\share\cmake-3.24\Modules\Compiler\MSVC.cmake;C:\Program Files\CMake\share\cmake-3.24\Modules\FindOpenGL.cmake;C:\Program Files\CMake\share\cmake-3.24\Modules\FindPackageHandleStandardArgs.cmake;C:\Program Files\CMake\share\cmake-3.24\Modules\FindPackageMessage.cmake;C:\Program Files\CMake\share\cmake-3.24\Modules\Platform\Windows-MSVC-C.cmake;C:\Program Files\CMake\share\cmake-3.24\Modules\Platform\Windows-MSVC-CXX.cmake;C:\Program Files\CMake\share\cmake-3.24\Modules\Platform\Windows-MSVC.cmake;C:\Program Files\CMake\share\cmake-3.24\Modules\Platform\Windows.cmake;C:\Program Files\CMake\share\cmake-3.24\Modules\Platform\WindowsPaths.cmake;E:\work\ogre_tools\library\bullet3-3.25\BulletConfig.cmake.in;E:\work\ogre_tools\library\bullet3-3.25\CMakeLists.txt;E:\work\ogre_tools\library\bullet3-3.25\Extras\BulletRobotics\CMakeLists.txt;E:\work\ogre_tools\library\bullet3-3.25\Extras\CMakeLists.txt;E:\work\ogre_tools\library\bullet3-3.25\Extras\ConvexDecomposition\CMakeLists.txt;E:\work\ogre_tools\library\bullet3-3.25\Extras\GIMPACTUtils\CMakeLists.txt;E:\work\ogre_tools\library\bullet3-3.25\Extras\HACD\CMakeLists.txt;E:\work\ogre_tools\library\bullet3-3.25\Extras\InverseDynamics\CMakeLists.txt;E:\work\ogre_tools\library\bullet3-3.25\Extras\Serialize\BulletFileLoader\CMakeLists.txt;E:\work\ogre_tools\library\bullet3-3.25\Extras\Serialize\BulletWorldImporter\CMakeLists.txt;E:\work\ogre_tools\library\bullet3-3.25\Extras\Serialize\BulletXmlWorldImporter\CMakeLists.txt;E:\work\ogre_tools\library\bullet3-3.25\Extras\Serialize\CMakeLists.txt;E:\work\ogre_tools\library\bullet3-3.25\build\CMakeFiles\3.24.2\CMakeCCompiler.cmake;E:\work\ogre_tools\library\bullet3-3.25\build\CMakeFiles\3.24.2\CMakeCXXCompiler.cmake;E:\work\ogre_tools\library\bullet3-3.25\build\CMakeFiles\3.24.2\CMakeRCCompiler.cmake;E:\work\ogre_tools\library\bullet3-3.25\build\CMakeFiles\3.24.2\CMakeSystem.cmake;E:\work\ogre_tools\library\bullet3-3.25\src\Bullet3Common\CMakeLists.txt;E:\work\ogre_tools\library\bullet3-3.25\src\BulletCollision\CMakeLists.txt;E:\work\ogre_tools\library\bullet3-3.25\src\BulletDynamics\CMakeLists.txt;E:\work\ogre_tools\library\bullet3-3.25\src\BulletInverseDynamics\CMakeLists.txt;E:\work\ogre_tools\library\bullet3-3.25\src\BulletSoftBody\CMakeLists.txt;E:\work\ogre_tools\library\bullet3-3.25\src\CMakeLists.txt;E:\work\ogre_tools\library\bullet3-3.25\src\LinearMath\CMakeLists.txt;E:\work\ogre_tools\library\bullet3-3.25\test\BulletDynamics\CMakeLists.txt;E:\work\ogre_tools\library\bullet3-3.25\test\BulletDynamics\pendulum\CMakeLists.txt;E:\work\ogre_tools\library\bullet3-3.25\test\CMakeLists.txt;E:\work\ogre_tools\library\bullet3-3.25\test\collision\CMakeLists.txt;E:\work\ogre_tools\library\bullet3-3.25\test\gtest-1.7.0\CMakeLists.txt;%(AdditionalInputs)</AdditionalInputs>
+      <Outputs Condition="'$(Configuration)|$(Platform)'=='RelWithDebInfo|x64'">E:\work\ogre_tools\library\bullet3-3.25\build\CMakeFiles\generate.stamp;E:\work\ogre_tools\library\bullet3-3.25\build\Extras\CMakeFiles\generate.stamp;E:\work\ogre_tools\library\bullet3-3.25\build\src\CMakeFiles\generate.stamp;E:\work\ogre_tools\library\bullet3-3.25\build\test\CMakeFiles\generate.stamp;E:\work\ogre_tools\library\bullet3-3.25\build\Extras\InverseDynamics\CMakeFiles\generate.stamp;E:\work\ogre_tools\library\bullet3-3.25\build\Extras\BulletRobotics\CMakeFiles\generate.stamp;E:\work\ogre_tools\library\bullet3-3.25\build\Extras\Serialize\CMakeFiles\generate.stamp;E:\work\ogre_tools\library\bullet3-3.25\build\Extras\ConvexDecomposition\CMakeFiles\generate.stamp;E:\work\ogre_tools\library\bullet3-3.25\build\Extras\HACD\CMakeFiles\generate.stamp;E:\work\ogre_tools\library\bullet3-3.25\build\Extras\GIMPACTUtils\CMakeFiles\generate.stamp;E:\work\ogre_tools\library\bullet3-3.25\build\Extras\Serialize\BulletFileLoader\CMakeFiles\generate.stamp;E:\work\ogre_tools\library\bullet3-3.25\build\Extras\Serialize\BulletXmlWorldImporter\CMakeFiles\generate.stamp;E:\work\ogre_tools\library\bullet3-3.25\build\Extras\Serialize\BulletWorldImporter\CMakeFiles\generate.stamp;E:\work\ogre_tools\library\bullet3-3.25\build\src\BulletInverseDynamics\CMakeFiles\generate.stamp;E:\work\ogre_tools\library\bullet3-3.25\build\src\BulletSoftBody\CMakeFiles\generate.stamp;E:\work\ogre_tools\library\bullet3-3.25\build\src\BulletCollision\CMakeFiles\generate.stamp;E:\work\ogre_tools\library\bullet3-3.25\build\src\BulletDynamics\CMakeFiles\generate.stamp;E:\work\ogre_tools\library\bullet3-3.25\build\src\LinearMath\CMakeFiles\generate.stamp;E:\work\ogre_tools\library\bullet3-3.25\build\src\Bullet3Common\CMakeFiles\generate.stamp;E:\work\ogre_tools\library\bullet3-3.25\build\test\gtest-1.7.0\CMakeFiles\generate.stamp;E:\work\ogre_tools\library\bullet3-3.25\build\test\collision\CMakeFiles\generate.stamp;E:\work\ogre_tools\library\bullet3-3.25\build\test\BulletDynamics\CMakeFiles\generate.stamp;E:\work\ogre_tools\library\bullet3-3.25\build\test\BulletDynamics\pendulum\CMakeFiles\generate.stamp</Outputs>
+      <LinkObjects Condition="'$(Configuration)|$(Platform)'=='RelWithDebInfo|x64'">false</LinkObjects>
+    </CustomBuild>
+  </ItemGroup>
+  <ItemGroup>
+  </ItemGroup>
+  <ItemGroup>
+  </ItemGroup>
+  <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
+  <ImportGroup Label="ExtensionTargets">
+  </ImportGroup>
+</Project>
