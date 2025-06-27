@@ -1,0 +1,209 @@
+17:45:22: Creating resource group General
+17:45:22: Creating resource group Internal
+17:45:22: Creating resource group Autodetect
+17:45:22: SceneManagerFactory for type 'DefaultSceneManager' registered.
+17:45:22: Registering ResourceManager for type Material
+17:45:22: Registering ResourceManager for type Mesh
+17:45:22: Registering ResourceManager for type Mesh2
+17:45:22: Registering ResourceManager for type OldSkeleton
+17:45:22: MovableObjectFactory for type 'ParticleSystem' registered.
+17:45:22: ArchiveFactory for archive type FileSystem registered.
+17:45:22: ArchiveFactory for archive type Zip registered.
+17:45:22: ArchiveFactory for archive type EmbeddedZip registered.
+17:45:22: DDS codec registering
+17:45:22: FreeImage version: 3.18.0
+17:45:22: This program uses FreeImage, a free, open source image library supporting all common bitmap formats. See http://freeimage.sourceforge.net for details
+17:45:22: Supported formats: bmp,ico,jpg,jif,jpeg,jpe,jng,koa,iff,lbm,mng,pbm,pbm,pcd,pcx,pgm,pgm,png,ppm,ppm,ras,tga,targa,tif,tiff,wap,wbmp,wbm,psd,psb,cut,xbm,xpm,gif,hdr,g3,sgi,rgb,rgba,bw,exr,j2k,j2c,jp2,pfm,pct,pict,pic,3fr,arw,bay,bmq,cap,cine,cr2,crw,cs1,dc2,dcr,drf,dsc,dng,erf,fff,ia,iiq,k25,kc2,kdc,mdc,mef,mos,mrw,nef,nrw,orf,pef,ptx,pxn,qtk,raf,raw,rdc,rw2,rwl,rwz,sr2,srf,srw,sti,x3f,webp,jxr,wdp,hdp
+17:45:22: OITD codec registering
+17:45:22: Registering ResourceManager for type HighLevelGpuProgram
+17:45:22: MovableObjectFactory for type 'Decal' registered.
+17:45:22: MovableObjectFactory for type 'InternalCubemapProbe' registered.
+17:45:22: MovableObjectFactory for type 'Entity' registered.
+17:45:22: MovableObjectFactory for type 'Item' registered.
+17:45:22: MovableObjectFactory for type 'Light' registered.
+17:45:22: MovableObjectFactory for type 'ParticleSystem2' registered.
+17:45:22: MovableObjectFactory for type 'Rectangle2Dv2' registered.
+17:45:22: MovableObjectFactory for type 'BillboardSet' registered.
+17:45:22: MovableObjectFactory for type 'ManualObject2' registered.
+17:45:22: MovableObjectFactory for type 'BillboardChain' registered.
+17:45:22: MovableObjectFactory for type 'RibbonTrail' registered.
+17:45:22: MovableObjectFactory for type 'WireAabb' registered.
+17:45:22: Loading library .\RenderSystem_Direct3D11_d
+17:45:22: Installing plugin: D3D11 RenderSystem
+17:45:22: D3D11: Direct3D11 Rendering Subsystem created.
+17:45:22: D3D11: Driver Detection Starts
+17:45:22: D3D11: "NVIDIA GeForce GT 640"
+17:45:22: D3D11: "Microsoft Basic Render Driver (software)"
+17:45:22: D3D11: Driver Detection Ends
+17:45:22: Plugin successfully installed
+17:45:22: *-*-* OGRE Initialising
+17:45:22: *-*-* Version 4.0.0unstable (F)
+17:45:22: D3D11: RenderSystem Option: Video Mode = 100 x 30
+17:45:22: D3D11: RenderSystem Option: Full Screen = No
+17:45:22: D3D11: RenderSystem Option: VSync = Yes
+17:45:22: CPU Identifier & Features
+17:45:22: -------------------------
+17:45:22:  *   CPU ID: GenuineIntel: Intel(R) Core(TM) i5-4440 CPU @ 3.10GHz
+17:45:22:  *   Logical cores: 4
+17:45:22:  *      SSE: yes
+17:45:22:  *     SSE2: yes
+17:45:22:  *     SSE3: yes
+17:45:22:  *      MMX: yes
+17:45:22:  *   MMXEXT: yes
+17:45:22:  *    3DNOW: no
+17:45:22:  * 3DNOWEXT: no
+17:45:22:  *     CMOV: yes
+17:45:22:  *      TSC: yes
+17:45:22:  *      FPU: yes
+17:45:22:  *      PRO: yes
+17:45:22:  *       HT: no
+17:45:22: -------------------------
+17:45:22: D3D11: Subsystem Initialising
+17:45:22: D3D11: Driver Detection Starts
+17:45:22: D3D11: "NVIDIA GeForce GT 640"
+17:45:22: D3D11: "Microsoft Basic Render Driver (software)"
+17:45:22: D3D11: Driver Detection Ends
+17:45:22: D3D11: Requested "(default)", selected "NVIDIA GeForce GT 640"
+17:45:22: D3D11: Device Feature Level 11.0
+17:45:22: ***************************************
+17:45:22: *** D3D11: Subsystem Initialized OK ***
+17:45:22: ***************************************
+17:45:22: D3D11RenderSystem::_createRenderWindow "QT Window", 100x30 windowed  miscParams: externalWindowHandle=1182272 
+17:45:22: Registering ResourceManager for type GpuProgram
+17:45:22: RenderSystem capabilities
+17:45:22: -------------------------
+17:45:22: RenderSystem Name: Direct3D11 Rendering Subsystem
+17:45:22: GPU Vendor: nvidia
+17:45:22: Device Name: NVIDIA GeForce GT 640
+17:45:22: Driver Version: 27.21.14.5671
+17:45:22:  * Fixed function pipeline: no
+17:45:22:  * Hardware generation of mipmaps: yes
+17:45:22:  * Texture blending: yes
+17:45:22:  * Anisotropic texture filtering: yes
+17:45:22:  * Dot product texture operation: yes
+17:45:22:  * Cube mapping: yes
+17:45:22:  * Hardware stencil buffer: yes
+17:45:22:    - Stencil depth: 8
+17:45:22:    - Two sided stencil support: yes
+17:45:22:    - Wrap stencil values: yes
+17:45:22:  * Hardware vertex / index buffers: yes
+17:45:22:  * 32-bit index buffers: yes
+17:45:22:  * Vertex programs: yes
+17:45:22:  * Number of floating-point constants for vertex programs: 512
+17:45:22:  * Number of integer constants for vertex programs: 16
+17:45:22:  * Number of boolean constants for vertex programs: 16
+17:45:22:  * Fragment programs: yes
+17:45:22:  * Number of floating-point constants for fragment programs: 512
+17:45:22:  * Number of integer constants for fragment programs: 16
+17:45:22:  * Number of boolean constants for fragment programs: 16
+17:45:22:  * Geometry programs: yes
+17:45:22:  * Number of floating-point constants for geometry programs: 512
+17:45:22:  * Number of integer constants for geometry programs: 16
+17:45:22:  * Number of boolean constants for geometry programs: 16
+17:45:22:  * Tessellation Hull programs: yes
+17:45:23:  * Number of floating-point constants for tessellation hull programs: 512
+17:45:23:  * Number of integer constants for tessellation hull programs: 16
+17:45:23:  * Number of boolean constants for tessellation hull programs: 16
+17:45:23:  * Tessellation Domain programs: yes
+17:45:23:  * Number of floating-point constants for tessellation domain programs: 512
+17:45:23:  * Number of integer constants for tessellation domain programs: 16
+17:45:23:  * Number of boolean constants for tessellation domain programs: 16
+17:45:23:  * Compute programs: yes
+17:45:23:  * Number of floating-point constants for compute programs: 512
+17:45:23:  * Number of integer constants for compute programs: 16
+17:45:23:  * Number of boolean constants for compute programs: 16
+17:45:23:  * Supported Shader Profiles: cs_5_0 ds_5_0 gs_4_0 gs_4_1 gs_5_0 hlsl hs_5_0 ps_4_0 ps_4_0_level_9_1 ps_4_0_level_9_3 ps_4_1 ps_5_0 vs_4_0 vs_4_0_level_9_1 vs_4_0_level_9_3 vs_4_1 vs_5_0
+17:45:23:  * Texture Compression: yes
+17:45:23:    - DXT: yes
+17:45:23:    - VTC: no
+17:45:23:    - PVRTC: no
+17:45:23:    - ATC: no
+17:45:23:    - ETC1: no
+17:45:23:    - ETC2: no
+17:45:23:    - BC4/BC5: yes
+17:45:23:    - BC6H/BC7: yes
+17:45:23:    - ASTC: no
+17:45:23:  * Hardware Occlusion Query: yes
+17:45:23:  * User clip planes: yes
+17:45:23:  * VET_UBYTE4 vertex element type: yes
+17:45:23:  * Infinite far plane projection: yes
+17:45:23:  * Hardware render-to-texture: yes
+17:45:23:  * Floating point textures: yes
+17:45:23:  * Non-power-of-two textures: yes
+17:45:23:  * 1d textures: yes
+17:45:23:  * Volume textures: yes
+17:45:23:  * Max Texture resolution (2D) 16384
+17:45:23:  * Max Texture resolution (3D) 2048
+17:45:23:  * Max Texture resolution (Cubemaps) 16384
+17:45:23:  * Multiple Render Targets: 8
+17:45:23:    - With different bit depths: yes
+17:45:23:  * Point Sprites: yes
+17:45:23:  * Extended point parameters: yes
+17:45:23:  * Max Point Size: 256
+17:45:23:  * Vertex texture fetch: yes
+17:45:23:  * Number of world matrices: 0
+17:45:23:  * Number of texture units: 16
+17:45:23:  * Stencil buffer depth: 8
+17:45:23:  * Number of vertex blend matrices: 0
+17:45:23:    - Max vertex textures: 4
+17:45:23:    - Vertex textures shared: no
+17:45:23:  * Render to Vertex Buffer : yes
+17:45:23:  * Hardware Atomic Counters: no
+17:45:23:  * Shader 16-bit floating point (half): no
+17:45:23:  * Compute max threads per threadgroup per axis: 1024, 1024, 64
+17:45:23:  * Compute max threads per threadgroup total: 1024
+17:45:23:  * Using Reverse Z: yes
+17:45:23: DefaultWorkQueue('Root') initialising on thread main.
+17:45:23: Particle Renderer Type 'billboard' registered
+17:45:23: Added resource location './' of type 'FileSystem' to resource group 'General'
+17:45:23: Added resource location './models' of type 'FileSystem' to resource group 'General'
+17:45:23: Parsing scripts for resource group Autodetect
+17:45:23: Finished parsing scripts for resource group Autodetect
+17:45:23: Creating resources for group Autodetect
+17:45:23: All done
+17:45:23: Parsing scripts for resource group General
+17:45:23: Parsing script Quad.program
+17:45:23: Parsing script DPSM.material
+17:45:23: Parsing script Sky.material
+17:45:23: Parsing script PbsMaterials.compositor
+17:45:23: Parsing script ShadowMapDebugging.compositor
+17:45:23: Parsing script Cottage_FREE.material.json
+17:45:23: Finished parsing scripts for resource group General
+17:45:23: Creating resources for group General
+17:45:23: All done
+17:45:23: Parsing scripts for resource group Internal
+17:45:23: Finished parsing scripts for resource group Internal
+17:45:23: Creating resources for group Internal
+17:45:23: All done
+17:45:27: Mesh: Loading athene.mesh.
+17:45:28: WARNING: athene.mesh is an older format ([MeshSerializer_v1.8]); you should upgrade it as soon as possible using the OgreMeshTool tool.
+17:45:28: Can't assign material 1 - Default because this Material does not exist. Have you forgotten to define it in a .material script?
+17:45:28: Warnings while compiling D3D11 high-level shader 100000000PixelShader_ps:
+E:\work\ogre_tools\bin\Debug\100000000PixelShader_ps.hlsl(897,14): warning X3078: 'i': loop control variable conflicts with a previous declaration in the outer scope; most recent declaration will be used
+
+17:45:30: Mesh: Loading Cottage_FREE.mesh.
+17:45:30: Warnings while compiling D3D11 high-level shader 100000002PixelShader_ps:
+E:\work\ogre_tools\bin\Debug\100000002PixelShader_ps.hlsl(951,14): warning X3078: 'i': loop control variable conflicts with a previous declaration in the outer scope; most recent declaration will be used
+
+17:45:35: Warnings while compiling D3D11 high-level shader 100000003PixelShader_ps:
+E:\work\ogre_tools\bin\Debug\100000003PixelShader_ps.hlsl(951,14): warning X3078: 'i': loop control variable conflicts with a previous declaration in the outer scope; most recent declaration will be used
+
+17:45:37: Warnings while compiling D3D11 high-level shader 100000005PixelShader_ps:
+E:\work\ogre_tools\bin\Debug\100000005PixelShader_ps.hlsl(1250,14): warning X3078: 'i': loop control variable conflicts with a previous declaration in the outer scope; most recent declaration will be used
+
+17:45:37: Warnings while compiling D3D11 high-level shader 100000006PixelShader_ps:
+E:\work\ogre_tools\bin\Debug\100000006PixelShader_ps.hlsl(1196,14): warning X3078: 'i': loop control variable conflicts with a previous declaration in the outer scope; most recent declaration will be used
+
+17:45:43: DefaultWorkQueue('Root') shutting down on thread main.
+17:45:43: *-*-* OGRE Shutdown
+17:45:43: Unregistering ResourceManager for type OldSkeleton
+17:45:43: Unregistering ResourceManager for type Mesh2
+17:45:43: Unregistering ResourceManager for type Mesh
+17:45:43: Unregistering ResourceManager for type Material
+17:45:43: Unregistering ResourceManager for type HighLevelGpuProgram
+17:45:43: Uninstalling plugin: D3D11 RenderSystem
+17:45:43: D3D11: Shutting down cleanly.
+17:45:43: Unregistering ResourceManager for type GpuProgram
+17:45:43: D3D11: Direct3D11 Rendering Subsystem destroyed.
+17:45:43: Plugin successfully uninstalled
+17:45:43: Unloading library .\RenderSystem_Direct3D11_d

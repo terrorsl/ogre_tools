@@ -19,6 +19,8 @@
 
 #include<OgreTextureGpuManager.h>
 
+#include<OgreWireAabb.h>
+
 #include "Vao/OgreVaoManager.h"
 #include "Vao/OgreVertexArrayObject.h"
 
@@ -34,7 +36,7 @@ struct Face
 	unsigned long a,b,c;
 };
 
-QOgreWidget::QOgreWidget(QWidget* parent) :QWidget(parent), mouse_down(false), meshNode(0)
+QOgreWidget::QOgreWidget(QWidget* parent) :QWidget(parent), mouse_down(false), meshNode(0), camera(0)
 {
 	setAttribute(Qt::WA_OpaquePaintEvent);
 	setAttribute(Qt::WA_PaintOnScreen, true);
@@ -61,6 +63,8 @@ void QOgreWidget::Initialize()
 		}
 	}
 
+	root->saveConfig();
+
 	QString dimensions = QString("%1 x %2").arg(this->width()).arg(this->height());
 	rs->setConfigOption("Video Mode", dimensions.toStdString());
 	rs->setConfigOption("Full Screen", "No");
@@ -83,53 +87,26 @@ void QOgreWidget::Initialize()
 	initialiseHLMS();
 
 	Ogre::ResourceGroupManager::getSingleton().addResourceLocation("./", "FileSystem", "General");
+	Ogre::ResourceGroupManager::getSingleton().addResourceLocation("./models", "FileSystem", "General");
 	Ogre::ResourceGroupManager::getSingleton().initialiseAllResourceGroups(false);
+	
 	/*
-	sm = root->createSceneManager(Ogre::ST_GENERIC, 1);
-
-	Ogre::Light* light = sm->createLight();
-	Ogre::SceneNode* lightNode = sm->getRootSceneNode()->createChildSceneNode();
-	lightNode->attachObject(light);
-
-	light->setType(Ogre::Light::LT_DIRECTIONAL);
-	light->setDirection(Ogre::Vector3(-1, -1, -1).normalisedCopy());
-
-	// Create & setup camera
-	camera = sm->createCamera("Main Camera");
-
-	// Position it at 500 in Z direction
-	camera->setPosition(Ogre::Vector3(0, 5, 15));
-	// Look back along -Z
-	camera->lookAt(Ogre::Vector3(0, 0, 0));
-	camera->setNearClipDistance(0.2f);
-	camera->setFarClipDistance(1000.0f);
-	camera->setAspectRatio((float)width() / (float)height());
-	//camera->setAutoAspectRatio(true);
-
-	//Ogre::Light *light = sm->createLight();
-	//light->setType(Ogre::Light::LT_DIRECTIONAL);
-
-	// Setup a basic compositor with a blue clear colour
-	Ogre::CompositorManager2* compositorManager = root->getCompositorManager2();
-	const Ogre::String workspaceName("Demo Workspace");
-	const Ogre::ColourValue backgroundColour(0.2f, 0.4f, 0.6f);
-	compositorManager->createBasicWorkspaceDef(workspaceName, backgroundColour, Ogre::IdString());
-	compositorManager->addWorkspace(sm, window->getTexture(), camera, workspaceName, true);
-	*/
-	//LoadMesh("Cottage_FREE.mesh");
-
-	//root->renderOneFrame();
-	/*Ogre::HlmsPbs* hlmsPbs = (Ogre::HlmsPbs*)root->getHlmsManager()->getHlms(Ogre::HLMS_PBS);
-
-	Ogre::HlmsMacroblock refMacroblock;
-	const Ogre::HlmsMacroblock* newMacroblock;
-	newMacroblock = root->getHlmsManager()->getMacroblock(refMacroblock);
-
-	Ogre::HlmsBlendblock refBlendblock;
-
-	Ogre::HlmsDatablock *datablock = hlmsPbs->createDatablock("testMaterial", "testMaterial", *newMacroblock, refBlendblock,Ogre::HlmsParamVec());
-
-	root->getHlmsManager()->saveMaterial(datablock, "test.material.json", 0, "");*/
+	// Initialize resources for LTC area lights and accurate specular reflections (IBL)
+	Ogre::Hlms* hlms = root->getHlmsManager()->getHlms(Ogre::HLMS_PBS);
+	OGRE_ASSERT_HIGH(dynamic_cast<Ogre::HlmsPbs*>(hlms));
+	Ogre::HlmsPbs* hlmsPbs = static_cast<Ogre::HlmsPbs*>(hlms);
+	try
+	{
+		hlmsPbs->loadLtcMatrix();
+	}
+	catch (Ogre::FileNotFoundException& e)
+	{
+		Ogre::LogManager::getSingleton().logMessage(e.getFullDescription(), Ogre::LML_CRITICAL);
+		Ogre::LogManager::getSingleton().logMessage(
+			"WARNING: LTC matrix textures could not be loaded. Accurate specular IBL reflections "
+			"and LTC area lights won't be available or may not function properly!",
+			Ogre::LML_CRITICAL);
+	}*/
 };
 void QOgreWidget::initialiseHLMS()
 {
@@ -175,6 +152,8 @@ void QOgreWidget::initialiseHLMS()
 	}
 
 	hlmsPbs = OGRE_NEW Ogre::HlmsPbs(archivePbs, &archivePbsLibraryFolders);
+
+	hlmsPbs->setShadowSettings(Ogre::HlmsPbs::PCF_2x2);
 	Ogre::Root::getSingleton().getHlmsManager()->registerHlms(hlmsPbs);
 };
 
@@ -252,12 +231,19 @@ void QOgreWidget::mouseMoveEvent(QMouseEvent* e)
 	float mx = (e->pos().x() - mouse_position.x()) / (float)width();
 	float my = (e->pos().y() - mouse_position.y()) / (float)height();
 
+	//emit mouseMove(mx, my);
+	if (camera)
+	{
+		camera->pitch(Ogre::Radian(-my));
+		camera->yaw(Ogre::Radian(-mx));
+	}
+#if 0
 	Ogre::Quaternion rotation = meshNode->getOrientation();
 
 	Ogre::Quaternion r = Ogre::Quaternion(Ogre::Radian(mx), Ogre::Vector3::UNIT_Y) * Ogre::Quaternion(Ogre::Radian(my), Ogre::Vector3::UNIT_X);
 	rotation = r * rotation;
 	meshNode->setOrientation(rotation);
-
+#endif
 	mouse_position = e->pos();
 };
 void QOgreWidget::mousePressEvent(QMouseEvent* e)
@@ -271,14 +257,22 @@ void QOgreWidget::mouseReleaseEvent(QMouseEvent* e)
 };
 void QOgreWidget::wheelEvent(QWheelEvent* e)
 {
+	if (camera == 0)
+		return;
+	Ogre::Quaternion q = camera->getOrientation();
+	Ogre::Vector3 m;
 	if (e->angleDelta().y() > 0)
 	{
-		camera->move(Ogre::Vector3(0, 0, 1));
+		m = Ogre::Vector3(0, 0, 1);
 	}
 	else
 	{
-		camera->move(Ogre::Vector3(0, 0, -1));
+		m = Ogre::Vector3(0, 0, -1);
 	}
+	m = q * m;
+	camera->move(m);
+
+	emit mouseWheel(e->angleDelta().y());
 };
 void QOgreWidget::keyPressEvent(QKeyEvent* e)
 {
@@ -288,7 +282,9 @@ void QOgreWidget::keyReleaseEvent(QKeyEvent* e)
 };
 void QOgreWidget::resizeEvent(QResizeEvent* e)
 {
-	//camera->setAspectRatio((float)e->size().width() / (float)e->size().height());
+	if(camera)
+		camera->setAspectRatio((float)e->size().width() / (float)e->size().height());
+	emit resizeWindow(e->size().width(), e->size().height());
 	window->windowMovedOrResized();
 };
 bool QOgreWidget::LoadMesh(QString filename)
@@ -390,10 +386,51 @@ Ogre::SceneManager* QOgreWidget::CreateSceneManager()
 
 	// Setup a basic compositor with a blue clear colour
 	Ogre::CompositorManager2* compositorManager = root->getCompositorManager2();
-	const Ogre::String workspaceName("Demo Workspace");
+	//const Ogre::String workspaceName("Demo Workspace");
+	const Ogre::String workspaceName("PbsMaterialsWorkspace");
 	const Ogre::ColourValue backgroundColour(0.2f, 0.4f, 0.6f);
-	compositorManager->createBasicWorkspaceDef(workspaceName, backgroundColour, Ogre::IdString());
+	if(!compositorManager->hasWorkspaceDefinition(workspaceName))
+		compositorManager->createBasicWorkspaceDef(workspaceName, backgroundColour, Ogre::IdString());
 	compositorManager->addWorkspace(sm, window->getTexture(), camera, workspaceName, true);
+
+	Ogre::v1::MeshManager::getSingleton().createPlane(
+		"Plane v1", Ogre::ResourceGroupManager::DEFAULT_RESOURCE_GROUP_NAME,
+		Ogre::Plane(Ogre::Vector3::UNIT_Y, 1.0f), 50.0f, 50.0f, 1, 1, true, 1, 4.0f, 4.0f,
+		Ogre::Vector3::UNIT_Z);
+
+	{
+		Ogre::v1::Entity* entity = sm->createEntity(
+			"Plane v1", Ogre::ResourceGroupManager::DEFAULT_RESOURCE_GROUP_NAME,
+			Ogre::SCENE_DYNAMIC);
+
+		entity->setCastShadows(false);
+
+		// The plane mesh won't try to set any material. **Therefore it will crash
+		// inside Ogre** if we don't specify any material (we use the default one here).
+		Ogre::Hlms* hlms = root->getHlmsManager()->getHlms(Ogre::HLMS_PBS);
+		entity->setDatablock(hlms->getDefaultDatablock());
+
+		Ogre::SceneNode* sceneNode = sm->getRootSceneNode(Ogre::SCENE_DYNAMIC)
+			->createChildSceneNode(Ogre::SCENE_DYNAMIC);
+		sceneNode->setPosition(0, -1, 0);
+		sceneNode->attachObject(entity);
+	}
+
+	Ogre::v1::Entity* entity = sm->createEntity(
+		"athene.mesh", Ogre::ResourceGroupManager::AUTODETECT_RESOURCE_GROUP_NAME,
+		Ogre::SCENE_DYNAMIC);
+	Ogre::SceneNode* sceneNode = sm->getRootSceneNode(Ogre::SCENE_DYNAMIC)
+		->createChildSceneNode(Ogre::SCENE_DYNAMIC);
+	sceneNode->attachObject(entity);
+	sceneNode->setPosition(0.0f, 1.6f, 0.0f);
+	sceneNode->scale(0.02f, 0.02f, 0.02f);
+
+	//Ogre::WireAabb *_aabb = sm->createWireAabb();
+	//_aabb->track(entity);
+
+	// Set sane defaults for proper shadow mapping
+	//sm->setShadowDirectionalLightExtrusionDistance(500.0f);
+	//sm->setShadowFarDistance(500.0f);
 
 	return sm;
 }

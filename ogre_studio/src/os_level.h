@@ -8,27 +8,58 @@
 
 #define OgreStudiVersion 100
 
+typedef enum {
+	OgreStudioObjectType_Light,
+	OgreStudioObjectType_Mesh,
+	OgreStudioObjectType_Helper
+}OgreStudioObjectType;
+
+class OgreStudioLevelCallback
+{
+public:
+	virtual void CreateNode(Ogre::SceneNode *node, OgreStudioObjectType type) = 0;
+	virtual void ReceiveMessage(int type, const std::string& message) = 0;
+};
+
 class OgreStudioLevel
 {
 public:
-	OgreStudioLevel(std::string& name, Ogre::SceneManager *_sm);
+	OgreStudioLevel(std::string& name, Ogre::Root *_root, Ogre::SceneManager *_sm, OgreStudioLevelCallback* _clb);
+	~OgreStudioLevel();
 	
 	bool Load(std::string &fname);
 	bool Save();
 
+	void resizeCamera(unsigned long width, unsigned long height);
+	void rotateCamera(float dx, float dy);
+	void moveCamera(float step);
+
 	Ogre::SceneManager* GetSceneManager() { return sm; }
 	//bool export();
 
-	void CreateLight(int type);
-	void CreateDynamicObject(std::string& name);
-	void CreateStaticObject(std::string& name);
+	Ogre::SceneNode *CreateLight(int type);
+	Ogre::SceneNode* CreateStaticObject(std::string& name);
+	Ogre::SceneNode* CreateDynamicObject(std::string& name);
+	Ogre::SceneNode* CreateNPC();
+	void CreateTerrain();
+
+	void SelectNode(Ogre::SceneNode* node);
 private:
+	void set_object_type(Ogre::SceneNode* node, OgreStudioObjectType type);
+
 	void serialize(Json::Value& root);
-	Json::Value serialize_lights();
+	Json::Value serialize_lights(Ogre::SceneNode* node);
 	Json::Value serialize_static_objects();
 	Json::Value serialize_dynamic_objects();
 
+	void deserialize(Json::Value& root);
+	void deserialize_lights(Json::Value &root);
+
 	std::string filename;
+	Ogre::Root* root;
 	Ogre::SceneManager* sm;
+	Ogre::WireAabb* selectedNode;
+
+	OgreStudioLevelCallback* callback;
 };
 #endif

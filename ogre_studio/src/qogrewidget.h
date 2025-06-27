@@ -15,6 +15,7 @@ public:
 
 	bool LoadMesh(QString filename);
 
+	Ogre::Root* GetRoot() { return root; }
 	Ogre::SceneManager* CreateSceneManager();
 	void DeleteSceneManager(Ogre::SceneManager* sm);
 
@@ -23,6 +24,10 @@ public:
 	void render();
 public slots:
 	bool eventFilter(QObject* target, QEvent* event);
+signals:
+	void resizeWindow(unsigned long width, unsigned long height);
+	void mouseMove(float dx, float dy);
+	void mouseWheel(float value);
 private:
 	QPaintEngine* paintEngine() const;
 	//void exposeEvent(QExposeEvent* event);

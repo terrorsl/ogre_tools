@@ -1,0 +1,69 @@
+{
+
+	"macroblocks" :
+	{
+		"Macroblock_0" :
+		{
+			"scissor_test" : false,
+			"depth_clamp" : false,
+			"depth_check" : true,
+			"depth_write" : true,
+			"depth_function" : "less_equal",
+			"depth_bias_constant" : 0,
+			"depth_bias_slope_scale" : 0,
+			"cull_mode" : "clockwise",
+			"polygon_mode" : "solid"
+		}
+	},
+
+	"blendblocks" :
+	{
+		"Blendblock_0" :
+		{
+			"alpha_to_coverage" : false,
+			"blendmask" : "rgba",
+			"separate_blend" : false,
+			"src_blend_factor" : "one",
+			"dst_blend_factor" : "zero",
+			"blend_operation" : "add"
+		}
+	},
+
+	"pbs" : 
+	{
+
+		"Cottage_FREE" :
+		{
+			"macroblock" : "Macroblock_0",
+			"blendblock" : "Blendblock_0",
+			"shadow_const_bias" : 0.01,
+			"workflow" : "specular_ogre",
+			"refraction_strength" : 0.075,
+			"diffuse" :
+			{
+				"value" : [0.8, 0.8, 0.8],
+				"texture" : "Cottage_Clean_Base_Color.png",
+				"background" : [1, 1, 1, 1]
+			},
+			"normal" :
+			{
+				"value" : 1,
+				"texture" : "Cottage_Clean_Normal.png"
+			},
+			"specular" :
+			{
+				"value" : [0.8, 0.8, 0.8]
+			},
+			"fresnel" :
+			{
+				"value" : 0.818,
+				"mode" : "coeff"
+			},
+			"roughness" :
+			{
+				"value" : 1,
+				"texture": "Cottage_Clean_Roughness.png"
+			}
+		}
+	}
+}
