@@ -158,6 +158,36 @@
           </item>
          </layout>
         </item>
+        <item>
+         <layout class="QHBoxLayout" name="horizontalLayout_4">
+          <item>
+           <widget class="QLabel" name="label_6">
+            <property name="text">
+             <string>Collision</string>
+            </property>
+           </widget>
+          </item>
+          <item>
+           <widget class="QComboBox" name="comboBox">
+            <item>
+             <property name="text">
+              <string>no collision</string>
+             </property>
+            </item>
+            <item>
+             <property name="text">
+              <string>static</string>
+             </property>
+            </item>
+            <item>
+             <property name="text">
+              <string>dynamic</string>
+             </property>
+            </item>
+           </widget>
+          </item>
+         </layout>
+        </item>
        </layout>
       </widget>
      </item>
