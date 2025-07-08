@@ -2,6 +2,7 @@
 #include<fstream>
 
 #include<OgreMeshManager2.h>
+#include<OgreMesh2.h>
 #include<OgreItem.h>
 #include<OgreWireAabb.h>
 
@@ -107,6 +108,7 @@ Ogre::SceneNode* OgreStudioLevel::CreateLight(int type)
 {
 	Ogre::Light* light = sm->createLight();
 	Ogre::SceneNode* lightNode = sm->getRootSceneNode()->createChildSceneNode();
+	lightNode->setName("light");
 	lightNode->attachObject(light);
 	set_object_type(lightNode, OgreStudioObjectType_Light);
 
@@ -159,12 +161,14 @@ Ogre::SceneNode* OgreStudioLevel::CreateNPC()
 Ogre::SceneNode* OgreStudioLevel::CreateDynamicObject(std::string& name)
 {
 	Ogre::Item* item = sm->createItem(name);
+	item->getMesh()->isLoaded();
 	//Ogre::MeshPtr mesh = Ogre::MeshManager::getSingleton().load(name, Ogre::ResourceGroupManager::AUTODETECT_RESOURCE_GROUP_NAME);
 
 	//Ogre::Item* item = sm->createItem(mesh);
 	item->setCastShadows(true);
 	Ogre::SceneNode* node = sm->getRootSceneNode()->createChildSceneNode();
 	node->attachObject((Ogre::MovableObject*)item);
+	node->setName("object");
 	set_object_type(node, OgreStudioObjectType_Mesh);
 	return node;
 };
@@ -236,7 +240,7 @@ void OgreStudioLevel::serialize(Json::Value& root)
 	root["ogre_studio"]["version"] = OgreStudiVersion;
 
 	Json::Value lights(Json::arrayValue);
-	Json::Value statics(Json::arrayValue);
+	Json::Value objects(Json::arrayValue);
 
 	Ogre::SceneNode* _root = sm->getRootSceneNode();
 	for (size_t index = 0; index < _root->numChildren(); index++)
@@ -251,16 +255,20 @@ void OgreStudioLevel::serialize(Json::Value& root)
 		switch (Ogre::any_cast<OgreStudioObjectType>(type))
 		{
 		case OgreStudioObjectType_Light:
-			lights.append(serialize_lights(child));
+			lights.append(serialize_light(child));
+			break;
+		case OgreStudioObjectType_Mesh:
+			objects.append(serialize_object(child));
 			break;
 		}
 	}
 
 	root["lights"] = lights;
+	root["objects"] = objects;
 	root["dynamics"] = serialize_dynamic_objects();
 	root["statics"] = serialize_static_objects();
 };
-Json::Value OgreStudioLevel::serialize_lights(Ogre::SceneNode* node)
+Json::Value OgreStudioLevel::serialize_light(Ogre::SceneNode* node)
 {
 	Json::Value js_light;
 
@@ -275,9 +283,10 @@ Json::Value OgreStudioLevel::serialize_lights(Ogre::SceneNode* node)
 		js_light["direction"].append(light->getDirection().z);
 		break;
 	default:
-		js_light["position"].append(node->getPosition().x);
+		serialize_vector("position", node->getPosition(), js_light);
+		/*js_light["position"].append(node->getPosition().x);
 		js_light["position"].append(node->getPosition().y);
-		js_light["position"].append(node->getPosition().z);
+		js_light["position"].append(node->getPosition().z);*/
 		break;
 	}
 
@@ -287,6 +296,40 @@ Json::Value OgreStudioLevel::serialize_lights(Ogre::SceneNode* node)
 	js_light["diffuse"].append(color.b);
 	js_light["diffuse"].append(color.a);
 	return js_light;
+};
+Json::Value OgreStudioLevel::serialize_object(Ogre::SceneNode* node)
+{
+	Json::Value js_obj;
+	Ogre::Item *obj = (Ogre::Item*)node->getAttachedObject(0);
+	
+	js_obj["name"] = node->getName();
+	js_obj["mesh"] = obj->getMesh()->getName();
+
+	//js_obj["static"] = obj->isStatic();
+
+	serialize_vector("position", node->getPosition(), js_obj);
+	serialize_quaternion("rotation", node->getOrientation(), js_obj);
+	return js_obj;
+};
+void OgreStudioLevel::serialize_vector(std::string name, const Ogre::Vector3& vec, Json::Value &node)
+{
+	node[name].append(vec.x);
+	node[name].append(vec.y);
+	node[name].append(vec.z);
+};
+void OgreStudioLevel::serialize_vector(std::string name, const Ogre::Vector4& vec, Json::Value& node)
+{
+	node[name].append(vec.x);
+	node[name].append(vec.y);
+	node[name].append(vec.z);
+	node[name].append(vec.w);
+};
+void OgreStudioLevel::serialize_quaternion(std::string name, const Ogre::Quaternion& vec, Json::Value& node)
+{
+	node[name].append(vec.x);
+	node[name].append(vec.y);
+	node[name].append(vec.z);
+	node[name].append(vec.w);
 };
 Json::Value OgreStudioLevel::serialize_static_objects()
 {
@@ -307,6 +350,7 @@ void OgreStudioLevel::deserialize(Json::Value& root)
 	}
 	
 	deserialize_lights(root["lights"]);
+	deserialize_objects(root["objects"]);
 	//root["dynamics"] = serialize_dynamic_objects();
 	//root["statics"] = serialize_static_objects();
 };
@@ -340,4 +384,38 @@ void OgreStudioLevel::deserialize_lights(Json::Value& root)
 		}
 		light->setPowerScale(Ogre::Math::PI);
 	}
+};
+void OgreStudioLevel::deserialize_objects(Json::Value& root)
+{
+	for (Json::Value::ArrayIndex index = 0; index < root.size(); index++)
+	{
+		Json::Value js_obj = root[index];
+
+		std::string str = js_obj["mesh"].asString();
+		Ogre::SceneNode *node = CreateDynamicObject(str);
+		node->setName(js_obj["name"].asString());
+
+		Ogre::Vector3 v3;
+		deserialize_vector("position", v3, js_obj);
+		node->setPosition(v3);
+
+		Ogre::Quaternion q;
+		deserialize_quaternion("rotation", q, js_obj);
+		node->setOrientation(q);
+
+		callback->CreateNode(node, OgreStudioObjectType::OgreStudioObjectType_Mesh);
+	}
+};
+void OgreStudioLevel::deserialize_vector(std::string name, Ogre::Vector3& vec, Json::Value& node)
+{
+	vec.x = node[name][0].asFloat();
+	vec.y = node[name][1].asFloat();
+	vec.z = node[name][2].asFloat();
+};
+void OgreStudioLevel::deserialize_quaternion(std::string name, Ogre::Quaternion& vec, Json::Value& node)
+{
+	vec.x = node[name][0].asFloat();
+	vec.y = node[name][1].asFloat();
+	vec.z = node[name][2].asFloat();
+	vec.w = node[name][3].asFloat();
 };

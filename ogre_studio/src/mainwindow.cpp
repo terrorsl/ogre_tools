@@ -1,16 +1,24 @@
 #include"mainwindow.h"
+#include"os_platform.h"
 //#include"qogrewidget.h"
 #include"ui_mainwindow.h"
 #include<qtimer.h>
 #include<qfiledialog.h>
 #include<qcolordialog.h>
 
+#include"progress_dialog.h"
+
+#include <QRunnable>
+#include <QThreadPool>
+
 MainWindow::MainWindow():ui(new Ui::MainWindow()), level(0)
 {
 	ui->setupUi(this);
 
 	QObject::connect(ui->objects, SIGNAL(itemDoubleClicked(QTreeWidgetItem*, int)), this, SLOT(objects_double_click(QTreeWidgetItem*, int)));
+	
 	QObject::connect(ui->levelTree, SIGNAL(itemClicked(QTreeWidgetItem*, int)), this, SLOT(level_itemClicked(QTreeWidgetItem*, int)));
+	QObject::connect(ui->levelTree, SIGNAL(itemChanged(QTreeWidgetItem*, int)), this, SLOT(level_itemChanged(QTreeWidgetItem*, int)));
 
 	QObject::connect(ui->px, SIGNAL(valueChanged(double)), this, SLOT(px_valueChanged(double)));
 	QObject::connect(ui->py, SIGNAL(valueChanged(double)), this, SLOT(py_valueChanged(double)));
@@ -20,6 +28,8 @@ MainWindow::MainWindow():ui(new Ui::MainWindow()), level(0)
 	QObject::connect(ui->diffuse_light, SIGNAL(pressed()), this, SLOT(diffuse_light_pressed()));
 	QObject::connect(ui->specular_light, SIGNAL(pressed()), this, SLOT(specular_light_pressed()));
 
+	QObject::connect(ui->collision, SIGNAL(currentIndexChanged(int)), this, SLOT(collision_currentIndexChanged(int)));
+
 	QObject::connect(ui->ogrewidget, SIGNAL(resizeWindow(unsigned long, unsigned long)), this, SLOT(resizeWindow(unsigned long, unsigned long)));
 	QObject::connect(ui->ogrewidget, SIGNAL(mouseMove(float, float)), this, SLOT(mouseMove(float, float)));
 	QObject::connect(ui->ogrewidget, SIGNAL(mouseWheel(float)), this, SLOT(mouseWheel(float)));
@@ -27,13 +37,10 @@ MainWindow::MainWindow():ui(new Ui::MainWindow()), level(0)
 	ui->ogrewidget->Initialize();
 	ui->ogrewidget->show();
 
-	ui->properyDock->setEnabled(false);
-	ui->projectDock->setEnabled(false);
-
-	physic = new OgreStudioPhysics();
+	physic = OS_NEW OgreStudioPhysics();
 	physic->Initialize();
 
-	QTimer* timer = new QTimer(this);
+	timer = new QTimer(this);
 	connect(timer, SIGNAL(timeout()), this, SLOT(renderOgre()));
 	timer->start(30);
 
@@ -41,6 +48,15 @@ MainWindow::MainWindow():ui(new Ui::MainWindow()), level(0)
 
 	LoadObjects();
 	PrepareLevel();
+
+	plugin_manager.Initialise();
+
+	ui->properyDock->setEnabled(false);
+	ui->projectDock->setEnabled(false);
+	ui->modelDock->setEnabled(false);
+
+	ui->actionSave->setEnabled(false);
+	ui->actionExport->setEnabled(false);
 };
 MainWindow::~MainWindow()
 {
@@ -50,6 +66,8 @@ MainWindow::~MainWindow()
 	delete physic;
 
 	delete ui;
+
+	plugin_manager.Deinitialise();
 };
 void MainWindow::LoadObjects()
 {
@@ -68,6 +86,7 @@ void MainWindow::LoadObjects()
 	}
 	QTreeWidgetItem *root_lights = new QTreeWidgetItem(QStringList() << "lights");
 	root_lights->setData(0, Qt::UserRole, OgreStudioObjectType_Light);
+	root_lights->setIcon(0, QIcon(":/icon/idea-bulb.png"));
 	ui->objects->addTopLevelItem(root_lights);
 	for (int type = Ogre::Light::LT_DIRECTIONAL; type < Ogre::Light::NUM_LIGHT_TYPES; type++)
 	{
@@ -76,12 +95,15 @@ void MainWindow::LoadObjects()
 		{
 		case Ogre::Light::LT_DIRECTIONAL:
 			item->setText(0, "directional");
+			item->setIcon(0, QIcon(":/icon/contrast.png"));
 			break;
 		case Ogre::Light::LT_POINT:
 			item->setText(0, "point");
+			item->setIcon(0, QIcon(":/icon/idea-bulb.png"));
 			break;
 		case Ogre::Light::LT_SPOTLIGHT:
 			item->setText(0, "spot");
+			item->setIcon(0, QIcon(":/icon/spotlight.png"));
 			break;
 		default:
 			item->setText(0, "other");
@@ -98,13 +120,22 @@ void MainWindow::PrepareLevel()
 	QList<QTreeWidgetItem*> items;
 	QTreeWidgetItem* item = new QTreeWidgetItem();
 	item->setText(0, "lights");
+	QIcon icon(":/icon/idea-bulb.png");
+	item->setIcon(0, icon);
 	items.append(item);
 	root_level_items.insert(OgreStudioObjectType_Light, item);
 	
 	item = new QTreeWidgetItem();
 	item->setText(0, "objects");
+	item->setIcon(0, QIcon(":/icon/objects.png"));
 	items.append(item);
 	root_level_items.insert(OgreStudioObjectType_Mesh, item);
+
+	item = new QTreeWidgetItem();
+	item->setText(0, "helpers");
+	item->setIcon(0, icon);
+	items.append(item);
+	root_level_items.insert(OgreStudioObjectType_Helper, item);
 	
 	ui->levelTree->addTopLevelItems(items);
 };
@@ -116,6 +147,16 @@ void MainWindow::UpdateCommonProperties(Ogre::SceneNode* node)
 	ui->px->blockSignals(true);
 	ui->px->setValue(position.x);
 	ui->px->blockSignals(false);
+
+	if (physic->IsObjectInWorld(node))
+	{
+		if(node->isStatic())
+			ui->collision->setCurrentIndex(1);
+		else
+			ui->collision->setCurrentIndex(2);
+	}
+	else
+		ui->collision->setCurrentIndex(0);
 };
 void MainWindow::px_valueChanged(double value)
 {
@@ -189,13 +230,17 @@ void MainWindow::on_actionNew_triggered()
 	}
 	Ogre::SceneManager *sm = ui->ogrewidget->CreateSceneManager();
 	std::string name("default.level.json");
-	level = OGRE_NEW OgreStudioLevel(name, ui->ogrewidget->GetRoot(), sm, this);
+	level = OS_NEW OgreStudioLevel(name, ui->ogrewidget->GetRoot(), sm, this);
 	level->resizeCamera(ui->ogrewidget->size().width(), ui->ogrewidget->size().height());
-	level->Save();
+	//level->Save();
 
 	physic->New(sm);
 
+	ui->actionSave->setEnabled(true);
+	ui->actionExport->setEnabled(true);
+	
 	ui->projectDock->setEnabled(true);
+	ui->modelDock->setEnabled(true);
 };
 void MainWindow::on_actionOpen_triggered()
 {
@@ -204,14 +249,19 @@ void MainWindow::on_actionOpen_triggered()
 		return;
 	std::string name = filename.toStdString();
 	Ogre::SceneManager* sm = ui->ogrewidget->CreateSceneManager();
-	OgreStudioLevel* nl = new OgreStudioLevel(name, ui->ogrewidget->GetRoot(), sm, this);
+	OgreStudioLevel* nl = OS_NEW OgreStudioLevel(name, ui->ogrewidget->GetRoot(), sm, this);
 	if (nl->Load(name))
 	{
 		if (level)
 			delete level;
 		level = nl;
 		physic->New(sm);
+
+		ui->actionSave->setEnabled(true);
+		ui->actionExport->setEnabled(true);
+
 		ui->projectDock->setEnabled(true);
+		ui->modelDock->setEnabled(true);
 	}
 	else
 		delete nl;
@@ -239,7 +289,7 @@ void MainWindow::objects_double_click(QTreeWidgetItem *item, int)
 		}
 		break;
 	}
-	AppendLevel(type, node);
+	AppendLevel(type, node, node->getName());
 };
 void MainWindow::level_itemClicked(QTreeWidgetItem *item, int column)
 {
@@ -258,6 +308,12 @@ void MainWindow::level_itemClicked(QTreeWidgetItem *item, int column)
 
 	UpdateCommonProperties(node);
 	UpdateLightProperties(node);
+};
+void MainWindow::level_itemChanged(QTreeWidgetItem* item, int column)
+{
+	Ogre::String name = item->text(column).toStdString();
+	Ogre::SceneNode *node = (Ogre::SceneNode*)item->data(column, Qt::UserRole).value<void*>();
+	node->setName(name);
 };
 void MainWindow::UpdateLightProperties(Ogre::SceneNode* node)
 {
@@ -314,25 +370,139 @@ void MainWindow::mouseWheel(float value)
 
 	level->moveCamera(value);
 };
-void MainWindow::AppendLevel(OgreStudioObjectType type, void *data)
+void MainWindow::AppendLevel(OgreStudioObjectType type, void *data, std::string name)
 {
 	const char* names[] = { "light%0", "mesh%0" };
 	QTreeWidgetItem* root = root_level_items.find(type).value();
 	QTreeWidgetItem* child = OGRE_NEW QTreeWidgetItem();
-	QString _name(names[type]);
+	QString _name;
+	if (name.empty())
+		_name = names[type];
+	else
+		_name = name.c_str();
 	_name = _name.arg(root->childCount());
 	child->setText(0, _name);
 	child->setData(0, Qt::UserRole, QVariant::fromValue(data));
+	child->setFlags(child->flags() | Qt::ItemIsEditable);
 	root->addChild(child);
 };
 void MainWindow::CreateNode(Ogre::SceneNode* node, OgreStudioObjectType type)
 {
-	AppendLevel(type, node);
+	AppendLevel(type, node, node->getName());
 
-	physic->AppendObject(node);
+	//physic->AppendObject(node);
 };
 void MainWindow::ReceiveMessage(int type, const std::string& message)
 {
 	QListWidgetItem* item = new QListWidgetItem(QString::fromStdString(message));
 	ui->messageList->addItem(item);
+};
+void MainWindow::collision_currentIndexChanged(int index)
+{
+	QTreeWidgetItem *item = ui->levelTree->currentItem();
+
+	Ogre::SceneNode* node = (Ogre::SceneNode*)item->data(0, Qt::UserRole).value<void*>();
+	switch (index)
+	{
+	case 0:
+		timer->stop();
+		physic->RemoveObject(node);
+		timer->start();
+		return;
+	case 1:
+		node->setStatic(true);
+		break;
+	case 2:
+		node->setStatic(false);
+		break;
+	}
+	physic->AppendObject(node);
+};
+
+class DoExportLevel :public QRunnable
+{
+public:
+	DoExportLevel(ProgressDialog* dialog, OgreStudioPluginExport *pl, Ogre::SceneManager* sm):manager(sm), _export(pl),_dialog(dialog) {}
+	void run()
+	{
+		Ogre::SceneNode* root = manager->getRootSceneNode();
+		QMetaObject::invokeMethod(_dialog,"SetProgressMax", Q_ARG(unsigned long, root->numChildren()));
+		for (size_t index = 0; index < root->numChildren(); index++)
+		{
+			if (_dialog->IsStop())
+				break;
+			QMetaObject::invokeMethod(_dialog,"UpdateProgress");
+			Sleep(3000);
+			Ogre::SceneNode* node = (Ogre::SceneNode*)root->getChild(index);
+			Ogre::Any type = node->getUserObjectBindings().getUserAny("type");
+			if (type.isEmpty())
+			{
+				continue;
+			}
+			OgreStudioNode os_node;
+
+			os_node.setPosition(node->getPosition().x, node->getPosition().y, node->getPosition().z);
+			switch (Ogre::any_cast<OgreStudioObjectType>(type))
+			{
+			case OgreStudioObjectType_Light:
+				{
+					OgreStudioLight* light = OS_NEW OgreStudioLight();
+					os_node.attachObject(light);
+				}
+				break;
+			case OgreStudioObjectType_Mesh:
+				{
+
+				}
+				break;
+			}
+			_export->DoExport(&os_node);
+		}
+		_export->EndExport();
+		QMetaObject::invokeMethod(_dialog,"accept");
+	}
+private:
+	Ogre::SceneManager* manager;
+	OgreStudioPluginExport* _export;
+	ProgressDialog* _dialog;
+};
+
+void MainWindow::on_actionExport_triggered()
+{
+	std::vector<OgreStudioPluginExport*> exports = plugin_manager.GetExports();
+	QString filter;
+
+	for (std::vector<OgreStudioPluginExport*>::iterator it = exports.begin(); it != exports.end(); it++)
+	{
+		filter += (*it)->GetExtension();
+		filter += ";;";
+	}
+
+	QFileDialog dialog(this, "Export Level", QDir::currentPath(), filter);
+	if (dialog.exec() == QDialog::Accepted)
+	{
+		QString ext = dialog.selectedNameFilter();
+		for (std::vector<OgreStudioPluginExport*>::iterator it = exports.begin(); it != exports.end(); it++)
+		{
+			if ((*it)->GetExtension() == ext)
+			{
+				QString filename = dialog.selectedFiles()[0];
+
+				(*it)->BeginExport(filename.toLocal8Bit().data());
+
+				ProgressDialog *dialog=new ProgressDialog(this);
+				
+				Ogre::SceneManager *sm = level->GetSceneManager();
+				DoExportLevel* exp = new DoExportLevel(dialog, *it, sm);
+				QThreadPool::globalInstance()->start(exp);
+
+				dialog->exec();
+				return;
+			}
+		}
+	}
+
+	//QString selectedFile = QFileDialog::getSaveFileName(this, "Export", QDir::currentPath(), filter);
+	//if (selectedFile.isEmpty())
+	//	return;
 };

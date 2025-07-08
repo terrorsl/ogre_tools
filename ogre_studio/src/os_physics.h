@@ -76,6 +76,9 @@ public:
 
 	void New(Ogre::SceneManager *sm);
 	void AppendObject(Ogre::SceneNode* node);
+	void RemoveObject(Ogre::SceneNode* node);
+
+	bool IsObjectInWorld(Ogre::SceneNode* node);
 private:
 	btCollisionConfiguration* collisionConfiguration;
 	btDispatcher* dispatcher;

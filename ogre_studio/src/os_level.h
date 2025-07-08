@@ -48,12 +48,22 @@ private:
 	void set_object_type(Ogre::SceneNode* node, OgreStudioObjectType type);
 
 	void serialize(Json::Value& root);
-	Json::Value serialize_lights(Ogre::SceneNode* node);
+	Json::Value serialize_light(Ogre::SceneNode* node);
+	Json::Value serialize_object(Ogre::SceneNode* node);
+
+	void serialize_vector(std::string name, const Ogre::Vector3& vec, Json::Value& node);
+	void serialize_vector(std::string name, const Ogre::Vector4& vec, Json::Value& node);
+	void serialize_quaternion(std::string name, const Ogre::Quaternion& vec, Json::Value& node);
+
 	Json::Value serialize_static_objects();
 	Json::Value serialize_dynamic_objects();
 
 	void deserialize(Json::Value& root);
 	void deserialize_lights(Json::Value &root);
+	void deserialize_objects(Json::Value& root);
+
+	void deserialize_vector(std::string name, Ogre::Vector3& vec, Json::Value& node);
+	void deserialize_quaternion(std::string name, Ogre::Quaternion& vec, Json::Value& node);
 
 	std::string filename;
 	Ogre::Root* root;

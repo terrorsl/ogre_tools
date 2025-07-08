@@ -246,7 +246,7 @@ int OgrestudioPhysicsDebugDraw::getDebugMode() const
 void OgrestudioPhysicsDebugDraw::update(btDiscreteDynamicsWorld *world)
 {
 	world->debugDrawWorld();
-	if (lines->getNumSections())
+	if (lines->getNumSections() && lines->getCurrentVertexCount())
 		lines->end();
 };
 void OgrestudioPhysicsDebugDraw::clear()
@@ -342,13 +342,9 @@ void OgreStudioPhysics::AppendObject(Ogre::SceneNode* node)
 	//btCollisionShape* shape=new btBoxShape(btVector3(aabb.mHalfSize.x, aabb.mHalfSize.y, aabb.mHalfSize.z));
 
 	btScalar mass = 0.f;
-	if (node->isStatic())
+	if (node->isStatic()==false)
 	{
-
-	}
-	else
-	{
-		//mass = 1;
+		mass = 1;
 	}
 	btMotionState* motionState = OS_NEW OgreStudioPhysicsMotionState(node);
 	btRigidBody::btRigidBodyConstructionInfo rbInfo(mass, motionState, shape);
@@ -356,4 +352,41 @@ void OgreStudioPhysics::AppendObject(Ogre::SceneNode* node)
 	//body->setRestitution
 	body->setUserPointer(node);
 	dynamicsWorld->addRigidBody(body);
+};
+void OgreStudioPhysics::RemoveObject(Ogre::SceneNode* node)
+{
+	for (int index = 0; index < dynamicsWorld->getNumCollisionObjects(); index++)
+	{
+		btRigidBody* body = btRigidBody::upcast(dynamicsWorld->getCollisionObjectArray()[index]);
+		if (node == body->getUserPointer())
+		{
+			btCollisionShape* shape = body->getCollisionShape();
+			switch (shape->getShapeType()) {
+			case CONVEX_TRIANGLEMESH_SHAPE_PROXYTYPE:
+				delete ((btConvexTriangleMeshShape*)shape)->getMeshInterface();
+				break;
+			case TRIANGLE_MESH_SHAPE_PROXYTYPE:
+				delete ((btBvhTriangleMeshShape*)shape)->getMeshInterface();
+				break;
+			}
+
+			delete shape;
+			delete body->getMotionState();
+			dynamicsWorld->removeRigidBody(body);
+			delete body;
+
+			debugDraw->clear();
+			return;
+		}
+	}
+};
+bool OgreStudioPhysics::IsObjectInWorld(Ogre::SceneNode* node)
+{
+	for (int index = 0; index < dynamicsWorld->getNumCollisionObjects(); index++)
+	{
+		btRigidBody* body = btRigidBody::upcast(dynamicsWorld->getCollisionObjectArray()[index]);
+		if (node == body->getUserPointer())
+			return true;
+	}
+	return false;
 };
