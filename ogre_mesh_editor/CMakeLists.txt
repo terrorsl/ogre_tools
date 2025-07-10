@@ -21,11 +21,13 @@ qt6_wrap_ui(UI ${UI_FILES})
 
 qt_add_executable(ogre_mesh_editor ${SRC} ${UI})
 
-target_include_directories(ogre_mesh_editor PRIVATE ${OGRE_INC} ${Qt6Widgets_INCLUDE_DIRS} ${CMAKE_CURRENT_SOURCE_DIR}/library/assimp-5.4.3/include)
+target_include_directories(ogre_mesh_editor PRIVATE ${OGRE_INC} ${Qt6Widgets_INCLUDE_DIRS} ${ASSIMP_DIR}/include)
 
 target_link_directories(ogre_mesh_editor PRIVATE debug ${Qt6Widgets_LIBS} ${OGRE_DIR}/lib/Debug)
 target_link_libraries(ogre_mesh_editor PRIVATE debug Qt6::Core Qt6::Gui Qt6::Widgets Qt6::Core5Compat
-	OgreNextMain_d.lib OgreNextHlmsUnlit_d.lib OgreNextHlmsPbs_d.lib ${CMAKE_CURRENT_SOURCE_DIR}/lib/assimp-vc143-mtd.lib
+	OgreNextMain_d.lib OgreNextHlmsUnlit_d.lib OgreNextHlmsPbs_d.lib 
+	${CMAKE_ARCHIVE_OUTPUT_DIRECTORY}/$<CONFIG>/assimp-vc143-mtd.lib
+	${CMAKE_ARCHIVE_OUTPUT_DIRECTORY}/$<CONFIG>/zlibstaticd.lib
 )
 
 set_target_properties(ogre_mesh_editor PROPERTIES

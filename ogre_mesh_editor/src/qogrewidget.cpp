@@ -368,7 +368,7 @@ QOgreWidget::~QOgreWidget()
 void QOgreWidget::Initialize()
 {
 	const Ogre::AbiCookie abiCookie = Ogre::generateAbiCookie();
-	root = OGRE_NEW Ogre::Root(&abiCookie);
+	root = OGRE_NEW Ogre::Root(&abiCookie, "plugins" OGRE_BUILD_SUFFIX ".cfg", "ogre.cfg", "OgreMeshEditor.log");
 
 	const Ogre::RenderSystemList& rsList = root->getAvailableRenderers();
 	Ogre::RenderSystem* rs = rsList[0];
