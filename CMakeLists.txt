@@ -23,8 +23,6 @@ set(CMAKE_PREFIX_PATH ${QT_PATH})
 find_package(Qt6 REQUIRED COMPONENTS Core Gui Widgets Core5Compat)
 #find_package(OGRE)
 
-set(QT_INCLUDE ${Qt6Widgets_INCLUDE_DIRS})
-
 set(CMAKE_CXX_STANDARD 17)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 
