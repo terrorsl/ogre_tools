@@ -6,6 +6,13 @@
 #include "OgreMeshManager.h"
 #include "OgreMeshManager2.h"
 
+#include"OgreSkeleton.h"
+#include"OgreAnimation.h"
+#include"OgreOldBone.h"
+
+#include"Animation/OgreSkeletonManager.h"
+#include"Animation/OgreSkeletonInstance.h"
+
 #include<OgreHlmsManager.h>
 #include<Hlms/Pbs/OgreHlmsPbs.h>
 #include<Hlms/Pbs/OgreHlmsPbsDatablock.h>
@@ -31,7 +38,7 @@ struct Face
 };
 
 QImport::QImport(QOgreWidget* widget, Ogre::HlmsManager* _manager, Ogre::RenderSystem* rs, ProgressDialog* _pd, QString _filename) :pd(_pd), filename(_filename), manager(_manager),
-renderSystem(rs),ow(widget)
+renderSystem(rs),ow(widget), mAnimationSpeedModifier(1)
 {
 };
 void QImport::computeNodesDerivedTransform(const aiScene* mScene, const aiNode* pNode, const aiMatrix4x4& accTransform)
@@ -294,6 +301,608 @@ Ogre::Aabb QImport::loadDataFromNode(const aiScene* scene, aiNode* node, Ogre::M
 	}
 	return aabb;
 };
+void QImport::flagNodeAsNeeded(const char* name)
+{
+	boneMapType::iterator iter = boneMap.find(Ogre::String(name));
+	if (iter != boneMap.end())
+	{
+		iter->second = true;
+	}
+}
+void QImport::markAllChildNodesAsNeeded(const aiNode* pNode)
+{
+	flagNodeAsNeeded(pNode->mName.data);
+	// Traverse all child nodes of the current node instance
+	for (unsigned int childIdx = 0; childIdx < pNode->mNumChildren; ++childIdx)
+	{
+		const aiNode* pChildNode = pNode->mChildren[childIdx];
+		markAllChildNodesAsNeeded(pChildNode);
+	}
+}
+void QImport::grabNodeNamesFromNode(const aiScene* mScene, const aiNode* pNode)
+{
+	boneMap.emplace(Ogre::String(pNode->mName.data), false);
+	mBoneNodesByName[pNode->mName.data] = pNode;
+
+	QWidget* p = pd->parentWidget();
+
+	QString message("Node ");
+	message += pNode->mName.data;
+	message += " found.";
+	QMetaObject::invokeMethod(p, "writeLog", Q_ARG(int, 0), Q_ARG(QString, message));
+
+	/*if (!mQuietMode)
+	{
+		Ogre::LogManager::getSingleton().logMessage("Node " + Ogre::String(pNode->mName.data) + " found.");
+	}*/
+
+	// Traverse all child nodes of the current node instance
+	for (unsigned int childIdx = 0; childIdx < pNode->mNumChildren; ++childIdx)
+	{
+		const aiNode* pChildNode = pNode->mChildren[childIdx];
+		grabNodeNamesFromNode(mScene, pChildNode);
+	}
+}
+void QImport::grabBoneNamesFromNode(const aiScene* mScene, const aiNode* pNode)
+{
+	static int meshNum = 0;
+	meshNum++;
+	if (pNode->mNumMeshes > 0)
+	{
+		for (unsigned int idx = 0; idx < pNode->mNumMeshes; ++idx)
+		{
+			aiMesh* pAIMesh = mScene->mMeshes[pNode->mMeshes[idx]];
+
+			if (pAIMesh->HasBones())
+			{
+				for (Ogre::uint32 i = 0; i < pAIMesh->mNumBones; ++i)
+				{
+					aiBone* pAIBone = pAIMesh->mBones[i];
+					if (NULL != pAIBone)
+					{
+						mBonesByName[pAIBone->mName.data] = pAIBone;
+
+						QWidget* p = pd->parentWidget();
+
+						QString message("%1 ) REAL BONE with name : %2");
+						message = message.arg(i).arg(pAIBone->mName.data);
+						QMetaObject::invokeMethod(p, "writeLog", Q_ARG(int, 0), Q_ARG(QString, message));
+						/*if (!mQuietMode)
+						{
+							Ogre::LogManager::getSingleton().logMessage(Ogre::StringConverter::toString(i) + ") REAL BONE with name : " + Ogre::String(pAIBone->mName.data));
+						}*/
+
+						// flag this node and all parents of this node as needed, until we reach the node holding the mesh, or the parent.
+						aiNode* node = mScene->mRootNode->FindNode(pAIBone->mName.data);
+						while (node)
+						{
+							if (node->mName.data == pNode->mName.data)
+							{
+								flagNodeAsNeeded(node->mName.data);
+								break;
+							}
+							if (node->mName.data == pNode->mParent->mName.data)
+							{
+								flagNodeAsNeeded(node->mName.data);
+								break;
+							}
+
+							// Not a root node, flag this as needed and continue to the parent
+							flagNodeAsNeeded(node->mName.data);
+							node = node->mParent;
+						}
+
+						// Flag all children of this node as needed
+						node = mScene->mRootNode->FindNode(pAIBone->mName.data);
+						markAllChildNodesAsNeeded(node);
+
+					} // if we have a valid bone
+				} // loop over bones
+			} // if this mesh has bones
+		} // loop over meshes
+	} // if this node has meshes
+
+	// Traverse all child nodes of the current node instance
+	for (unsigned int childIdx = 0; childIdx < pNode->mNumChildren; childIdx++)
+	{
+		const aiNode* pChildNode = pNode->mChildren[childIdx];
+		grabBoneNamesFromNode(mScene, pChildNode);
+	}
+}
+bool QImport::isNodeNeeded(const char* name)
+{
+	boneMapType::iterator iter = boneMap.find(Ogre::String(name));
+	if (iter != boneMap.end())
+	{
+		return iter->second;
+	}
+	return false;
+}
+void QImport::createBonesFromNode(const aiScene* mScene, const aiNode* pNode)
+{
+	if (isNodeNeeded(pNode->mName.data))
+	{
+
+		Ogre::v1::OldBone* bone = mSkeleton->createBone(Ogre::String(pNode->mName.data), msBoneCount);
+
+		aiQuaternion rot;
+		aiVector3D pos;
+		aiVector3D scale;
+
+		// above should be the same as
+		aiMatrix4x4 aiM = pNode->mTransformation;
+
+		aiM.Decompose(scale, rot, pos);
+
+
+		/*
+		// debug render
+		Ogre::SceneNode* sceneNode = NULL;
+		if(parentNode)
+		{
+			Ogre::SceneNode* parent = static_cast<Ogre::SceneNode*>(
+				GOOF::NodeUtils::GetNodeMatch(getSceneManager()->getRootSceneNode(), parentNode->mName.data, false));
+			assert(parent);
+			sceneNode = parent->createChildSceneNode(pNode->mName.data);
+		}
+		else
+		{
+			sceneNode = getSceneManager()->getRootSceneNode()->createChildSceneNode(pNode->mName.data);
+		}
+
+		sceneNode->setScale(scale.x, scale.y, scale.z);
+		sceneNode->setPosition(pos.x, pos.y, pos.z);
+		sceneNode->setOrientation(rot.w, rot.x, rot.y, rot.z);
+
+		sceneNode = sceneNode->createChildSceneNode();
+		sceneNode->setScale(0.01, 0.01, 0.01);
+		sceneNode->attachObject(getSceneManager()->createEntity("Box1m.mesh"));
+		*/
+
+		if (!aiM.IsIdentity())
+		{
+			bone->setPosition(pos.x, pos.y, pos.z);
+			bone->setOrientation(rot.w, rot.x, rot.y, rot.z);
+		}
+
+		QWidget* p = pd->parentWidget();
+		QString message("%1 ) Creating bone '%2'");
+		message = message.arg(msBoneCount).arg(pNode->mName.data);
+		QMetaObject::invokeMethod(p, "writeLog", Q_ARG(int, 0), Q_ARG(QString, message));
+		/*if (!mQuietMode)
+		{
+			Ogre::LogManager::getSingleton().logMessage(Ogre::StringConverter::toString(msBoneCount) + ") Creating bone '" + Ogre::String(pNode->mName.data) + "'");
+		}*/
+
+		msBoneCount++;
+	}
+	// Traverse all child nodes of the current node instance
+	for (unsigned int childIdx = 0; childIdx < pNode->mNumChildren; ++childIdx)
+	{
+		const aiNode* pChildNode = pNode->mChildren[childIdx];
+		createBonesFromNode(mScene, pChildNode);
+	}
+}
+void QImport::createBoneHiearchy(const aiScene* mScene, const aiNode* pNode)
+{
+	if (isNodeNeeded(pNode->mName.data))
+	{
+		Ogre::v1::OldBone* parent = 0;
+		Ogre::v1::OldBone* child = 0;
+		if (pNode->mParent)
+		{
+			if (mSkeleton->hasBone(pNode->mParent->mName.data))
+			{
+				parent = mSkeleton->getBone(pNode->mParent->mName.data);
+			}
+		}
+		if (mSkeleton->hasBone(pNode->mName.data))
+		{
+			child = mSkeleton->getBone(pNode->mName.data);
+		}
+		if (parent && child)
+		{
+			parent->addChild(child);
+		}
+	}
+	// Traverse all child nodes of the current node instance
+	for (unsigned int childIdx = 0; childIdx < pNode->mNumChildren; childIdx++)
+	{
+		const aiNode* pChildNode = pNode->mChildren[childIdx];
+		createBoneHiearchy(mScene, pChildNode);
+	}
+}
+
+/** translation, rotation, scale */
+typedef std::tuple< aiVectorKey*, aiQuatKey*, aiVectorKey* > KeyframeData;
+typedef std::map< Ogre::Real, KeyframeData > KeyframesMap;
+
+template <int v>
+struct Int2Type
+{
+	enum { value = v };
+};
+
+// T should be a Loki::Int2Type<>
+template< typename T > void GetInterpolationIterators(KeyframesMap& keyframes,
+	KeyframesMap::iterator it,
+	KeyframesMap::reverse_iterator& front,
+	KeyframesMap::iterator& back)
+{
+	front = KeyframesMap::reverse_iterator(it);
+
+	front++;
+	for (front; front != keyframes.rend(); front++)
+	{
+		if (std::get< T::value >(front->second) != NULL)
+		{
+			break;
+		}
+	}
+
+	back = it;
+	back++;
+	for (back; back != keyframes.end(); back++)
+	{
+		if (std::get< T::value >(back->second) != NULL)
+		{
+			break;
+		}
+	}
+}
+
+aiVector3D getTranslate(aiNodeAnim* node_anim, KeyframesMap& keyframes, KeyframesMap::iterator it, Ogre::Real ticksPerSecond)
+{
+	aiVectorKey* translateKey = std::get<0>(it->second);
+	aiVector3D vect;
+	if (translateKey)
+	{
+		vect = translateKey->mValue;
+	}
+	else
+	{
+		KeyframesMap::reverse_iterator front;
+		KeyframesMap::iterator back;
+
+
+		GetInterpolationIterators< Int2Type<0> >(keyframes, it, front, back);
+
+		KeyframesMap::reverse_iterator rend = keyframes.rend();
+		KeyframesMap::iterator end = keyframes.end();
+		aiVectorKey* frontKey = NULL;
+		aiVectorKey* backKey = NULL;
+
+		if (front != rend)
+			frontKey = std::get<0>(front->second);
+
+		if (back != end)
+			backKey = std::get<0>(back->second);
+
+		// got 2 keys can interpolate
+		if (frontKey && backKey)
+		{
+			float prop = (float)(((double)it->first - frontKey->mTime) / (backKey->mTime - frontKey->mTime));
+			prop /= ticksPerSecond;
+			vect = ((backKey->mValue - frontKey->mValue) * prop) + frontKey->mValue;
+		}
+
+		else if (frontKey)
+		{
+			vect = frontKey->mValue;
+		}
+		else if (backKey)
+		{
+			vect = backKey->mValue;
+		}
+	}
+
+	return vect;
+}
+
+aiQuaternion getRotate(aiNodeAnim* node_anim, KeyframesMap& keyframes, KeyframesMap::iterator it, Ogre::Real ticksPerSecond)
+{
+	aiQuatKey* rotationKey = std::get<1>(it->second);
+	aiQuaternion rot;
+	if (rotationKey)
+	{
+		rot = rotationKey->mValue;
+	}
+	else
+	{
+		KeyframesMap::reverse_iterator front;
+		KeyframesMap::iterator back;
+
+		GetInterpolationIterators< Int2Type<1> >(keyframes, it, front, back);
+
+		KeyframesMap::reverse_iterator rend = keyframes.rend();
+		KeyframesMap::iterator end = keyframes.end();
+		aiQuatKey* frontKey = NULL;
+		aiQuatKey* backKey = NULL;
+
+		if (front != rend)
+			frontKey = std::get<1>(front->second);
+
+		if (back != end)
+			backKey = std::get<1>(back->second);
+
+		// got 2 keys can interpolate
+		if (frontKey && backKey)
+		{
+			float prop = (float)(((double)it->first - frontKey->mTime) / (backKey->mTime - frontKey->mTime));
+			prop /= ticksPerSecond;
+			aiQuaternion::Interpolate(rot, frontKey->mValue, backKey->mValue, prop);
+		}
+
+		else if (frontKey)
+		{
+			rot = frontKey->mValue;
+		}
+		else if (backKey)
+		{
+			rot = backKey->mValue;
+		}
+	}
+
+	return rot;
+}
+
+aiVector3D getScale(aiNodeAnim* node_anim, KeyframesMap& keyframes, KeyframesMap::iterator it, Ogre::Real ticksPerSecond)
+{
+	aiVectorKey* scaleKey = std::get<2>(it->second);
+	aiVector3D vect(1,1,1);
+	if (scaleKey)
+	{
+		vect = scaleKey->mValue;
+	}
+	else
+	{
+		KeyframesMap::reverse_iterator front;
+		KeyframesMap::iterator back;
+
+
+		GetInterpolationIterators< Int2Type<2> >(keyframes, it, front, back);
+
+		KeyframesMap::reverse_iterator rend = keyframes.rend();
+		KeyframesMap::iterator end = keyframes.end();
+		aiVectorKey* frontKey = NULL;
+		aiVectorKey* backKey = NULL;
+
+		if (front != rend)
+			frontKey = std::get<0>(front->second);
+
+		if (back != end)
+			backKey = std::get<0>(back->second);
+
+		// got 2 keys can interpolate
+		if (frontKey && backKey)
+		{
+			float prop = (float)(((double)it->first - frontKey->mTime) / (backKey->mTime - frontKey->mTime));
+			prop /= ticksPerSecond;
+			vect = ((backKey->mValue - frontKey->mValue) * prop) + frontKey->mValue;
+		}
+
+		else if (frontKey)
+		{
+			vect = frontKey->mValue;
+		}
+		else if (backKey)
+		{
+			vect = backKey->mValue;
+		}
+	}
+
+	return vect;
+}
+
+void QImport::parseAnimation(const aiScene* mScene, int index, aiAnimation* anim)
+{
+	// DefBonePose a matrix that represents the local bone transform (can build from Ogre bone components)
+	// PoseToKey a matrix representing the keyframe translation
+	// What assimp stores aiNodeAnim IS the decomposed form of the transform (DefBonePose * PoseToKey)
+	// To get PoseToKey which is what Ogre needs we'ed have to build the transform from components in
+	// aiNodeAnim and then DefBonePose.Inverse() * aiNodeAnim(generated transform) will be the right transform
+
+	Ogre::String animName;
+	if (mCustomAnimationName != "")
+	{
+		animName = mCustomAnimationName;
+		if (index >= 1)
+		{
+			animName += Ogre::StringConverter::toString(index);
+		}
+	}
+	else
+	{
+		animName = Ogre::String(anim->mName.data);
+	}
+	if (animName.length() < 1)
+	{
+		animName = "Animation" + Ogre::StringConverter::toString(index);
+	}
+
+	QWidget* p = pd->parentWidget();
+	QString message("Animation name = '%1' duration = %2 tick/sec = %3 channels = %4");
+	message = message.arg(animName.c_str()).arg(anim->mDuration).arg(anim->mTicksPerSecond).arg(anim->mNumChannels);
+	QMetaObject::invokeMethod(p, "writeLog", Q_ARG(int, 0), Q_ARG(QString, message));
+	/*if (!mQuietMode)
+	{
+		Ogre::LogManager::getSingleton().logMessage("Animation name = '" + animName + "'");
+		Ogre::LogManager::getSingleton().logMessage("duration = " + Ogre::StringConverter::toString(Ogre::Real(anim->mDuration)));
+		Ogre::LogManager::getSingleton().logMessage("tick/sec = " + Ogre::StringConverter::toString(Ogre::Real(anim->mTicksPerSecond)));
+		Ogre::LogManager::getSingleton().logMessage("channels = " + Ogre::StringConverter::toString(anim->mNumChannels));
+	}*/
+
+	Ogre::v1::Animation* animation;
+	mTicksPerSecond = (Ogre::Real)((0 == anim->mTicksPerSecond) ? 24 : anim->mTicksPerSecond);
+	mTicksPerSecond *= mAnimationSpeedModifier;
+
+	Ogre::Real cutTime = 0.0;
+#if 0
+	if (mLoaderParams & LP_CUT_ANIMATION_WHERE_NO_FURTHER_CHANGE)
+	{
+		for (int i = 1; i < (int)anim->mNumChannels; i++)
+		{
+			aiNodeAnim* node_anim = anim->mChannels[i];
+
+			// times of the equality check
+			Ogre::Real timePos = 0.0;
+			Ogre::Real timeRot = 0.0;
+
+			for (unsigned int i = 1; i < node_anim->mNumPositionKeys; i++)
+			{
+				if (node_anim->mPositionKeys[i] != node_anim->mPositionKeys[i - 1])
+				{
+					timePos = (Ogre::Real)node_anim->mPositionKeys[i].mTime;
+					timePos /= mTicksPerSecond;
+				}
+			}
+
+			for (unsigned int i = 1; i < node_anim->mNumRotationKeys; i++)
+			{
+				if (node_anim->mRotationKeys[i] != node_anim->mRotationKeys[i - 1])
+				{
+					timeRot = (Ogre::Real)node_anim->mRotationKeys[i].mTime;
+					timeRot /= mTicksPerSecond;
+				}
+			}
+
+			if (timePos > cutTime) { cutTime = timePos; }
+			if (timeRot > cutTime) { cutTime = timeRot; }
+		}
+
+		animation = mSkeleton->createAnimation(Ogre::String(animName), cutTime);
+	}
+	else
+	{
+		cutTime = Ogre::Math::POS_INFINITY;
+		animation = mSkeleton->createAnimation(Ogre::String(animName), Ogre::Real(anim->mDuration / mTicksPerSecond));
+	}
+#else
+	cutTime = Ogre::Math::POS_INFINITY;
+	animation = mSkeleton->createAnimation(Ogre::String(animName), Ogre::Real(anim->mDuration / mTicksPerSecond));
+#endif
+
+	animation->setInterpolationMode(Ogre::v1::Animation::IM_LINEAR); //FIXME: Is this always true?
+
+	message = QString("Cut Time '%1'");
+	message = message.arg(cutTime);
+	QMetaObject::invokeMethod(p, "writeLog", Q_ARG(int, 0), Q_ARG(QString, message));
+	/*if (!mQuietMode)
+	{
+		Ogre::LogManager::getSingleton().logMessage("Cut Time " + Ogre::StringConverter::toString(cutTime));
+	}*/
+
+	for (int i = 0; i < (int)anim->mNumChannels; i++)
+	//for (int i = 0; i < 28; i++)
+	{
+		/*if (i == 27)
+		{
+			int k = 0;
+		}*/
+		Ogre::v1::TransformKeyFrame* keyframe;
+
+		aiNodeAnim* node_anim = anim->mChannels[i];
+
+		message = QString("Channel %1 affecting node: %2");
+		message = message.arg(i).arg(node_anim->mNodeName.data);
+		QMetaObject::invokeMethod(p, "writeLog", Q_ARG(int, 0), Q_ARG(QString, message));
+		/*if (!mQuietMode)
+		{
+			Ogre::LogManager::getSingleton().logMessage("Channel " + Ogre::StringConverter::toString(i));
+			Ogre::LogManager::getSingleton().logMessage("affecting node: " + Ogre::String(node_anim->mNodeName.data));
+		}*/
+		Ogre::String boneName = Ogre::String(node_anim->mNodeName.data);
+
+		if (mSkeleton->hasBone(boneName))
+		{
+			Ogre::v1::OldBone* bone = mSkeleton->getBone(boneName);
+
+			//Affine3 defBonePoseInv;
+			//defBonePoseInv.makeInverseTransform(bone->getPosition(), bone->getScale(), bone->getOrientation());
+			Ogre::Matrix4 defBonePoseInv;
+			defBonePoseInv.makeInverseTransform(bone->getPosition(), bone->getScale(), bone->getOrientation());
+
+			Ogre::v1::OldNodeAnimationTrack* track = animation->createOldNodeTrack(i, bone);
+			// Ogre needs translate rotate and scale for each keyframe in the track
+			KeyframesMap keyframes;
+
+			for (unsigned int i = 0; i < node_anim->mNumPositionKeys; i++)
+			{
+				keyframes[(Ogre::Real)node_anim->mPositionKeys[i].mTime / mTicksPerSecond] = KeyframeData(&(node_anim->mPositionKeys[i]), NULL, NULL);
+			}
+
+			for (unsigned int i = 0; i < node_anim->mNumRotationKeys; i++)
+			{
+				KeyframesMap::iterator it = keyframes.find((Ogre::Real)node_anim->mRotationKeys[i].mTime / mTicksPerSecond);
+				if (it != keyframes.end())
+				{
+					std::get<1>(it->second) = &(node_anim->mRotationKeys[i]);
+				}
+				else
+				{
+					keyframes[(Ogre::Real)node_anim->mRotationKeys[i].mTime / mTicksPerSecond] = KeyframeData(NULL, &(node_anim->mRotationKeys[i]), NULL);
+				}
+			}
+
+			for (unsigned int i = 0; i < node_anim->mNumScalingKeys; i++)
+			{
+				KeyframesMap::iterator it = keyframes.find((Ogre::Real)node_anim->mScalingKeys[i].mTime / mTicksPerSecond);
+				if (it != keyframes.end())
+				{
+					std::get<2>(it->second) = &(node_anim->mScalingKeys[i]);
+				}
+				else
+				{
+					keyframes[(Ogre::Real)node_anim->mRotationKeys[i].mTime / mTicksPerSecond] = KeyframeData(NULL, NULL, &(node_anim->mScalingKeys[i]));
+				}
+			}
+
+			KeyframesMap::iterator it = keyframes.begin();
+			KeyframesMap::iterator it_end = keyframes.end();
+			for (it; it != it_end; ++it)
+			{
+				if (it->first < cutTime)	// or should it be <=
+				{
+					aiVector3D aiTrans = getTranslate(node_anim, keyframes, it, mTicksPerSecond);
+
+					Ogre::Vector3 trans(aiTrans.x, aiTrans.y, aiTrans.z);
+
+					aiQuaternion aiRot = getRotate(node_anim, keyframes, it, mTicksPerSecond);
+					Ogre::Quaternion rot(aiRot.w, aiRot.x, aiRot.y, aiRot.z);
+
+					aiVector3D aiScale = getScale(node_anim, keyframes, it, mTicksPerSecond);
+					Ogre::Vector3 scale(aiScale.x, aiScale.y, aiScale.z);
+
+					Ogre::Vector3 transCopy = trans;
+
+					//Affine3 fullTransform;
+					Ogre::Matrix4 fullTransform;
+					fullTransform.makeTransform(trans, scale, rot);
+
+					//Affine3 poseTokey = defBonePoseInv * fullTransform;
+					Ogre::Matrix4 poseTokey = defBonePoseInv * fullTransform;
+					poseTokey.decomposition(trans, scale, rot);
+
+					keyframe = track->createNodeKeyFrame(Ogre::Real(it->first));
+
+					// weirdness with the root bone, But this seems to work
+					//if (mSkeleton->getRootBones()[0]->getName() == boneName)
+					if (mSkeleton->getRootBone()->getName() == boneName)
+					{
+						trans = transCopy - bone->getPosition();
+					}
+
+					keyframe->setTranslate(trans);
+					keyframe->setRotation(rot);
+					keyframe->setScale(scale);
+				}
+			}
+		} // if bone exists
+	} // loop through channels
+
+	mSkeleton->optimiseAllAnimations();
+
+}
 void QImport::run()
 {
 	QMetaObject::invokeMethod(pd, "SetMessasge", Q_ARG(QString, "Import mesh"));
@@ -319,17 +928,94 @@ void QImport::run()
 	QMetaObject::invokeMethod(pd, "SetProgressMax", Q_ARG(unsigned long, nodes));
 
 	QMetaObject::invokeMethod(pd, "SetMessasge", Q_ARG(QString, "Get Nodes transform"));
+	
+	grabNodeNamesFromNode(scene, scene->mRootNode);
+	grabBoneNamesFromNode(scene, scene->mRootNode);
+
 	computeNodesDerivedTransform(scene, scene->mRootNode, scene->mRootNode->mTransformation);
 
 	mesh = Ogre::MeshManager::getSingleton().createManual(basename, Ogre::ResourceGroupManager::DEFAULT_RESOURCE_GROUP_NAME);
 
+	if (mBonesByName.size())
+	{
+
+		//mSkeleton = Ogre::SkeletonManager::getSingleton().create(basename + ".skeleton", Ogre::RGN_DEFAULT, true);
+		mSkeleton = Ogre::v1::OldSkeletonManager::getSingleton().create(basename + ".skeleton", "General", true);
+		//mSkeleton = Ogre::SkeletonManager::getSingleton().getSkeletonDef(v1Skeleton.getPointer());
+
+		msBoneCount = 0;
+		createBonesFromNode(scene, scene->mRootNode);
+		msBoneCount = 0;
+		createBoneHiearchy(scene, scene->mRootNode);
+
+		if (scene->HasAnimations())
+		{
+			for (unsigned int i = 0; i < scene->mNumAnimations; ++i)
+			{
+				parseAnimation(scene, i, scene->mAnimations[i]);
+			}
+		}
+	}
+
 	Ogre::Aabb aabb = loadDataFromNode(scene, scene->mRootNode, mesh.get());
+
+	Ogre::v1::SkeletonPtr skeletonPtr;
+	if (mSkeleton)
+	{
+		/*if (!mQuietMode)
+		{
+			Ogre::LogManager::getSingleton().logMessage("Root bone: " + mSkeleton->getRootBones()[0]->getName());
+		}*/
+
+		unsigned short numBones = mSkeleton->getNumBones();
+		unsigned short i;
+
+		for (i = 0; i < numBones; ++i)
+		{
+			Ogre::v1::OldBone* pBone = mSkeleton->getBone(i);
+			assert(pBone);
+		}
+		skeletonPtr = mSkeleton;
+		//mesh->setSkeletonName(mSkeleton->getName());
+	}
+
+#if 0
+	for (auto sm : mesh->getSubMeshes())
+	{
+		/*if (!sm->useSharedVertices)
+		{
+
+			Ogre::VertexDeclaration* newDcl =
+				sm->vertexData->vertexDeclaration->getAutoOrganisedDeclaration(mesh->hasSkeleton(), mesh->hasVertexAnimation(), false);
+
+			if (*newDcl != *(sm->vertexData->vertexDeclaration))
+			{
+				sm->vertexData->reorganiseBuffers(newDcl);
+			}
+		}*/
+	}
+#endif
+
 	// We must indicate the bounding box
 	mesh->_setBounds(aabb);
 	mesh->_setBoundingSphereRadius((aabb.getMaximum() - aabb.getMinimum()).length() / 2);
 	mesh->load();
 
+	if (skeletonPtr)
+	{
+		Ogre::v1::SkeletonSerializer skelSer;
+		skelSer.exportSkeleton(skeletonPtr.get(), "models/" + skeletonPtr->getName());
+
+		mesh->setSkeletonName(mSkeleton->getName());
+
+		for (auto sm : mesh->getSubMeshes())
+		{
+			sm->_buildBoneIndexMap();
+		}
+	}
+
 	QMetaObject::invokeMethod(pd, "SetMessasge", Q_ARG(QString, "Saving mesh"));
+	
 	Ogre::MeshSerializer mesh_serializer(0);
 	mesh_serializer.exportMesh(mesh.get(), "models/" + basename + ".mesh");
 
@@ -437,6 +1123,8 @@ void QOgreWidget::Initialize()
 		compositorManager->createBasicWorkspaceDef(workspaceName, backgroundColour, Ogre::IdString());
 	compositorManager->addWorkspace(sm, window->getTexture(), camera, workspaceName, true);
 
+	is_draw = true;
+
 	//LoadMesh("Cottage_FREE.mesh");
 
 	//root->renderOneFrame();
@@ -514,8 +1202,18 @@ QPaintEngine * QOgreWidget::paintEngine() const
 void QOgreWidget::render()
 {
 	Ogre::WindowEventUtilities::messagePump();
-	if(root->isInitialised())
-		root->renderOneFrame();
+	if (root->isInitialised() && is_draw)
+	{
+		if (meshNode)
+		{
+			for (auto a : meshNode->getAttachedObject(0)->getSkeletonInstance()->getActiveAnimations())
+			{
+				a->addTime(1.f/30.f);
+			}
+			//meshNode->getAttachedObject(0)->getSkeletonInstance()->getAnimation("Idle")->addTime(1);
+		}
+		root->renderOneFrame(1.f/30.f);
+	}
 };
 bool QOgreWidget::eventFilter(QObject* target, QEvent* event)
 {
@@ -1126,11 +1824,17 @@ Ogre::Mesh* QOgreWidget::LoadMesh(QString filename)
 	if (mesh.isNull() == false)
 	{
 		Ogre::Item* item = sm->createItem(mesh);
+		
+		Ogre::SkeletonInstance* sk_inst = item->getSkeletonInstance();// ->getAnimation("Take 001");
+		if (sk_inst)
+		{
+			sk_inst->getAnimation("Idle")->setEnabled(true);
+			sk_inst->getAnimation("Idle")->setLoop(true);
+			//sk_inst->getAnimation("Idle")->addTime(1);
+			//sa->setEnabled(true);
+		}
 
-		//item->setDatablock("Cottage_FREE");
-
-		meshNode = sm->getRootSceneNode(Ogre::SCENE_DYNAMIC)
-			->createChildSceneNode(Ogre::SCENE_DYNAMIC);
+		meshNode = sm->getRootSceneNode(Ogre::SCENE_DYNAMIC)->createChildSceneNode(Ogre::SCENE_DYNAMIC);
 
 		meshNode->attachObject((Ogre::MovableObject*)item);
 
@@ -1154,6 +1858,7 @@ Ogre::MeshPtr QOgreWidget::LoadMeshV2(QString filename)
 	{
 		printf("%s\n", ex.what());
 	}
+
 	return mesh;
 };
 Ogre::MeshPtr QOgreWidget::LoadMeshV1(QString filename)
@@ -1201,6 +1906,11 @@ void QOgreWidget::CreateScene(Ogre::MeshPtr mesh)
 	{
 		sm->getRootSceneNode(Ogre::SCENE_DYNAMIC)->removeAndDestroyChild(meshNode);
 	}
+
+	Ogre::SkeletonAnimation* sa = item->getSkeletonInstance()->getAnimation("Take 001");
+	sa->setEnabled(true);
+	sa->setLoop(true);
+	//item->getSkeletonInstance()->update();
 
 	meshNode = sm->getRootSceneNode(Ogre::SCENE_DYNAMIC)->createChildSceneNode(Ogre::SCENE_DYNAMIC);
 

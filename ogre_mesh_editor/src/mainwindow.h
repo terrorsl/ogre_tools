@@ -4,6 +4,12 @@
 #include<qmainwindow.h>
 #include<Ogre.h>
 
+typedef enum {
+	MainWindowLogMessageType_Message,
+	MainWindowLogMessageType_Warning,
+	MainWindowLogMessageType_Error
+}MainWindowLogMessageType;
+
 namespace Ui {
 	class MainWindow;
 };
@@ -18,6 +24,8 @@ public slots:
 
 	void on_actionOpen_triggered();
 	void on_actionImport_triggered();
+
+	void writeLog(int type, QString message);
 private:
 	void Save();
 	void UpdateProperty(Ogre::Mesh *mesh);

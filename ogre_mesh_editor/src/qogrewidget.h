@@ -3,6 +3,8 @@
 
 #include<qwidget.h>
 #include<Ogre.h>
+#include<OgreSkeleton.h>
+#include<Animation/OgreSkeletonDef.h>
 #include<assimp/scene.h>
 
 #include <QRunnable>
@@ -31,6 +33,8 @@ public:
 	void render(QPainter* painter);
 	void paintEvent(QPaintEvent* event);
 	void render();
+
+	void SetDraw(bool state) { is_draw = state; }
 
 	void CreateScene(Ogre::MeshPtr mesh);
 	Ogre::Mesh *GetMesh();
@@ -69,6 +73,7 @@ private:
 	Ogre::Camera* camera;
 	Ogre::SceneManager* sm;
 	Ogre::SceneNode* meshNode;
+	bool is_draw;
 
 	bool mouse_down;
 	QPoint mouse_position;
@@ -89,6 +94,14 @@ private:
 	Ogre::Aabb loadDataFromNode(const aiScene* scene, aiNode* node, Ogre::Mesh* mesh);
 	Ogre::HlmsDatablock* createMaterial(const aiMaterial* mat, const Ogre::String& group, const Ogre::String& meshName, const aiScene* scene);
 	bool createSubMesh(const Ogre::String& name, int index, const aiNode* pNode, const aiMesh* mesh, Ogre::HlmsDatablock* db, Ogre::Mesh* mMesh, Ogre::Aabb& mAAB);
+	void grabBoneNamesFromNode(const aiScene* mScene, const aiNode* pNode);
+	void flagNodeAsNeeded(const char* name);
+	void markAllChildNodesAsNeeded(const aiNode* pNode);
+	void grabNodeNamesFromNode(const aiScene* mScene, const aiNode* pNode);
+	void createBonesFromNode(const aiScene* mScene, const aiNode* pNode);
+	bool isNodeNeeded(const char* name);
+	void createBoneHiearchy(const aiScene* mScene, const aiNode* pNode);
+	void parseAnimation(const aiScene* mScene, int index, aiAnimation* anim);
 	
 	QOgreWidget* ow;
 
@@ -96,10 +109,26 @@ private:
 	Ogre::RenderSystem* renderSystem;
 
 	Ogre::MeshPtr mesh;
+	Ogre::v1::SkeletonPtr mSkeleton;
+	int msBoneCount;
+	
 	ProgressDialog* pd;
 	QString filename;
 
 	typedef std::map<Ogre::String, aiMatrix4x4> NodeTransformMap;
 	NodeTransformMap mNodeDerivedTransformByName;
+
+	typedef std::map<Ogre::String, const aiBone*> BoneMap;
+	BoneMap mBonesByName;
+
+	typedef std::map<Ogre::String, bool> boneMapType;
+	boneMapType boneMap;
+
+	typedef std::map<Ogre::String, const aiNode*> BoneNodeMap;
+	BoneNodeMap mBoneNodesByName;
+
+	Ogre::String mCustomAnimationName;
+	Ogre::Real mTicksPerSecond;
+	Ogre::Real mAnimationSpeedModifier;
 };
 #endif

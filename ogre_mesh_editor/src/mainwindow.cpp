@@ -56,6 +56,8 @@ void MainWindow::on_actionImport_triggered()
 
 	ProgressDialog pd(this);
 
+	ui->ogrewidget->SetDraw(false);
+
 	QImport* importer = new QImport(ui->ogrewidget, ui->ogrewidget->GetHlmsManager(), ui->ogrewidget->GetRenderSystem(), & pd, filename);
 	QThreadPool::globalInstance()->start(importer);
 
@@ -63,6 +65,7 @@ void MainWindow::on_actionImport_triggered()
 	{
 		UpdateProperty(ui->ogrewidget->GetMesh());
 	}
+	ui->ogrewidget->SetDraw(true);
 
 	/*mesh = ui->ogrewidget->Import(filename);
 
@@ -75,10 +78,19 @@ void MainWindow::on_actionImport_triggered()
 };
 void MainWindow::UpdateProperty(Ogre::Mesh* mesh)
 {
+	ui->propertyTree->clear();
+	QTreeWidgetItem* rootProperty = new QTreeWidgetItem();
+	rootProperty->setText(0, QString::fromStdString(mesh->getName()));
+	ui->propertyTree->addTopLevelItem(rootProperty);
+
 	ui->materialTree->clear();
 
 	for (unsigned int index = 0; index < mesh->getNumSubMeshes(); index++)
 	{
+		QTreeWidgetItem* sub = new QTreeWidgetItem();
+		sub->setText(0, QString("submesh%1").arg(index));
+		rootProperty->addChild(sub);
+
 		QTreeWidgetItem* root = new QTreeWidgetItem();
 		root->setText(0, QString("submesh%1").arg(index));
 		ui->materialTree->addTopLevelItem(root);
@@ -113,4 +125,9 @@ void MainWindow::UpdateProperty(Ogre::Mesh* mesh)
 			}
 		}
 	}
+};
+void MainWindow::writeLog(int type, QString message)
+{
+	QListWidgetItem* item = new QListWidgetItem(message);
+	ui->logList->addItem(item);
 };
