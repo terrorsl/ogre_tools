@@ -1,0 +1,11 @@
+<RCC>
+  <qresource prefix="icon">
+    <file>data-storage.png</file>
+    <file>export.png</file>
+    <file>import.png</file>
+    <file>contrast.png</file>
+    <file>spotlight.png</file>
+    <file>objects.png</file>
+    <file>idea-bulb.png</file>
+  </qresource>
+</RCC>
