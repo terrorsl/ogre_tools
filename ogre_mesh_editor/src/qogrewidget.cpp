@@ -24,6 +24,8 @@
 #include<OgreSubMesh2.h>
 #include<OgreMatrix3.h>
 
+#include<OgreManualObject2.h>
+
 #include<OgreTextureGpuManager.h>
 
 #include "Vao/OgreVaoManager.h"
@@ -168,6 +170,11 @@ Ogre::HlmsDatablock* QImport::createMaterial(const aiMaterial* mat, const Ogre::
 }
 bool QImport::createSubMesh(const Ogre::String& name, int index, const aiNode* pNode, const aiMesh* mesh, Ogre::HlmsDatablock* db, Ogre::Mesh* mMesh, Ogre::Aabb& mAAB)
 {
+	if (mBonesByName.size() && !mesh->HasBones())
+	{
+		//Ogre::LogManager::getSingleton().logMessage("Skipping Mesh " + Ogre::String(mesh->mName.data) + "with no bone weights")
+		//return false;
+	}
 	// now begin the object definition
 	// We create a submesh per material
 	Ogre::SubMesh* submesh = mMesh->createSubMesh();// name + Ogre::StringConverter::toString(index));
@@ -182,6 +189,8 @@ bool QImport::createSubMesh(const Ogre::String& name, int index, const aiNode* p
 	Ogre::VertexElement2Vec vertexElements;
 	vertexElements.push_back(Ogre::VertexElement2(Ogre::VET_FLOAT3, Ogre::VES_POSITION));
 
+	//Ogre::LogManager::getSingleton().logMessage(Ogre::StringConverter::toString(mesh->mNumVertices) + " vertices")
+
 	int vertexSize = 3 * 4;
 	if (norm)
 	{
@@ -193,8 +202,14 @@ bool QImport::createSubMesh(const Ogre::String& name, int index, const aiNode* p
 		vertexElements.push_back(Ogre::VertexElement2(Ogre::VET_FLOAT2, Ogre::VES_TEXTURE_COORDINATES));
 		vertexSize += (2 * 4);
 	}
-
-	float* vertexs = (float*)OGRE_MALLOC_SIMD(vertexSize * mesh->mNumVertices, Ogre::MEMCATEGORY_GEOMETRY);
+	if (tang)
+	{
+		vertexElements.push_back(Ogre::VertexElement2(Ogre::VET_FLOAT3, Ogre::VES_TANGENT));
+		vertexSize += (3 * 4);
+	}
+	
+	float* vertexs = reinterpret_cast<float*>(OGRE_MALLOC_SIMD(vertexSize * mesh->mNumVertices, Ogre::MEMCATEGORY_GEOMETRY));
+	Ogre::FreeOnDestructor bufferPtrVertex(vertexs);
 
 	submesh->setMaterialName(*db->getNameStr());
 	//submesh->setMaterialName(matptr->getName());
@@ -208,6 +223,7 @@ bool QImport::createSubMesh(const Ogre::String& name, int index, const aiNode* p
 	for (size_t i = 0; i < mesh->mNumVertices; ++i)
 	{
 		aiVector3D v = aiM * vec[i];
+		
 		vertexs[_index] = v.x;
 		_index++;
 		vertexs[_index] = v.y;
@@ -222,6 +238,8 @@ bool QImport::createSubMesh(const Ogre::String& name, int index, const aiNode* p
 			Ogre::Vector3 nv(norm[i].x, norm[i].y, norm[i].z);
 
 			nv = normalMatrix * nv;
+			nv = nv.normalise();
+
 			vertexs[_index] = nv.x;
 			_index++;
 			vertexs[_index] = nv.y;
@@ -236,9 +254,24 @@ bool QImport::createSubMesh(const Ogre::String& name, int index, const aiNode* p
 			vertexs[_index] = uv[i].y;
 			_index++;
 		}
+		if (tang)
+		{
+			Ogre::Vector3 nv(tang[i].x, tang[i].y, tang[i].z);
+
+			nv = normalMatrix * nv;
+			nv = nv.normalise();
+
+			vertexs[_index] = nv.x;
+			_index++;
+			vertexs[_index] = nv.y;
+			_index++;
+			vertexs[_index] = nv.z;
+			_index++;
+		}
 	}
 
 	Face* faces = reinterpret_cast<Face*>(OGRE_MALLOC_SIMD(sizeof(Face) * mesh->mNumFaces, Ogre::MEMCATEGORY_GEOMETRY));
+	Ogre::FreeOnDestructor bufferPtrFace(faces);
 	for (unsigned int i = 0; i < mesh->mNumFaces; i++)
 	{
 		aiFace face = mesh->mFaces[i];
@@ -252,7 +285,7 @@ bool QImport::createSubMesh(const Ogre::String& name, int index, const aiNode* p
 
 	Ogre::VaoManager* vaoManager = renderSystem->getVaoManager();
 
-	vertexBuffer = vaoManager->createVertexBuffer(vertexElements, mesh->mNumVertices, Ogre::BT_IMMUTABLE, vertexs, true);
+	vertexBuffer = vaoManager->createVertexBuffer(vertexElements, mesh->mNumVertices, Ogre::BT_IMMUTABLE, vertexs, false);
 
 	// Now the Vao. We'll just use one vertex buffer source (multi-source not working yet)
 	Ogre::VertexBufferPackedVec vertexBuffers;
@@ -260,10 +293,9 @@ bool QImport::createSubMesh(const Ogre::String& name, int index, const aiNode* p
 
 	Ogre::IndexBufferPacked* indexBuffer = 0;
 	indexBuffer = vaoManager->createIndexBuffer(Ogre::IndexBufferPacked::IT_32BIT, 3 * mesh->mNumFaces,
-		Ogre::BT_IMMUTABLE, faces, true);
+		Ogre::BT_IMMUTABLE, faces, false);
 
-	Ogre::VertexArrayObject* vao =
-		vaoManager->createVertexArrayObject(vertexBuffers, indexBuffer, Ogre::OT_TRIANGLE_LIST);
+	Ogre::VertexArrayObject* vao =	vaoManager->createVertexArrayObject(vertexBuffers, indexBuffer, Ogre::OT_TRIANGLE_LIST);
 
 	// Each Vao pushed to the vector refers to an LOD level.
 	// Must be in sync with mesh->mLodValues & mesh->mNumLods if you use more than one level
@@ -271,6 +303,26 @@ bool QImport::createSubMesh(const Ogre::String& name, int index, const aiNode* p
 	// Use the same geometry for shadow casting.
 	submesh->mVao[Ogre::VpShadow].push_back(vao);
 
+	if (mesh->HasBones())
+	{
+		for (unsigned int i = 0; i < mesh->mNumBones; i++)
+		{
+			aiBone* pAIBone = mesh->mBones[i];
+			if (pAIBone == 0)
+				continue;
+
+			Ogre::String bname = pAIBone->mName.data;
+			for (Ogre::uint32 weightIdx = 0; weightIdx < pAIBone->mNumWeights; weightIdx++)
+			{
+				aiVertexWeight aiWeight = pAIBone->mWeights[weightIdx];
+
+				Ogre::VertexBoneAssignment vba(aiWeight.mVertexId, mSkeleton->getBone(bname)->getHandle(), aiWeight.mWeight);
+				submesh->addBoneAssignment(vba);
+			}
+		}
+		submesh->_compileBoneAssignments();
+		//submesh->_buildBoneIndexMap();
+	}
 	return true;
 }
 Ogre::Aabb QImport::loadDataFromNode(const aiScene* scene, aiNode* node, Ogre::Mesh* mesh)
@@ -424,7 +476,7 @@ void QImport::createBonesFromNode(const aiScene* mScene, const aiNode* pNode)
 	{
 
 		Ogre::v1::OldBone* bone = mSkeleton->createBone(Ogre::String(pNode->mName.data), msBoneCount);
-
+		
 		aiQuaternion rot;
 		aiVector3D pos;
 		aiVector3D scale;
@@ -463,6 +515,7 @@ void QImport::createBonesFromNode(const aiScene* mScene, const aiNode* pNode)
 		{
 			bone->setPosition(pos.x, pos.y, pos.z);
 			bone->setOrientation(rot.w, rot.x, rot.y, rot.z);
+			//bone->setScale(scale.x, scale.y, scale.z);
 		}
 
 		QWidget* p = pd->parentWidget();
@@ -793,9 +846,9 @@ void QImport::parseAnimation(const aiScene* mScene, int index, aiAnimation* anim
 	}*/
 
 	for (int i = 0; i < (int)anim->mNumChannels; i++)
-	//for (int i = 0; i < 28; i++)
+	//for (int i = 0; i < 68; i++)
 	{
-		/*if (i == 27)
+		/*if (i == 67)
 		{
 			int k = 0;
 		}*/
@@ -864,11 +917,19 @@ void QImport::parseAnimation(const aiScene* mScene, int index, aiAnimation* anim
 				if (it->first < cutTime)	// or should it be <=
 				{
 					aiVector3D aiTrans = getTranslate(node_anim, keyframes, it, mTicksPerSecond);
-
+		
 					Ogre::Vector3 trans(aiTrans.x, aiTrans.y, aiTrans.z);
+					if (trans.isNaN())
+					{
+						int k = 0;
+					}
 
 					aiQuaternion aiRot = getRotate(node_anim, keyframes, it, mTicksPerSecond);
 					Ogre::Quaternion rot(aiRot.w, aiRot.x, aiRot.y, aiRot.z);
+					if (rot.isNaN())
+					{
+						int k = 0;
+					}
 
 					aiVector3D aiScale = getScale(node_anim, keyframes, it, mTicksPerSecond);
 					Ogre::Vector3 scale(aiScale.x, aiScale.y, aiScale.z);
@@ -892,6 +953,11 @@ void QImport::parseAnimation(const aiScene* mScene, int index, aiAnimation* anim
 						trans = transCopy - bone->getPosition();
 					}
 
+					if (trans.isNaN() || rot.isNaN() || scale.isNaN())
+					{
+						int k = 0;
+					}
+
 					keyframe->setTranslate(trans);
 					keyframe->setRotation(rot);
 					keyframe->setScale(scale);
@@ -912,12 +978,17 @@ void QImport::run()
 
 	//unsigned int Flag = aiProcess_FindInvalidData | aiProcess_GenUVCoords | aiProcess_GenNormals | aiProcess_GenBoundingBoxes | aiProcess_GlobalScale | aiProcess_Triangulate | aiProcess_ConvertToLeftHanded;
 
-	unsigned int Flag = aiProcessPreset_TargetRealtime_Quality | aiProcess_FindInvalidData | aiProcess_GlobalScale | aiProcess_ConvertToLeftHanded;
+	unsigned int Flag = aiProcessPreset_TargetRealtime_Quality /* | aiProcess_FindInvalidData | aiProcess_GlobalScale | aiProcess_ConvertToLeftHanded*/;
+	Flag &= ~aiProcess_JoinIdenticalVertices;
 
 	Assimp::Importer importer;
 	const aiScene* scene = importer.ReadFile(filename.toStdString(), Flag);
 	if (scene == 0)
 	{
+		QWidget* p = pd->parentWidget();
+		QString message(importer.GetErrorString());
+		QMetaObject::invokeMethod(p, "writeLog", Q_ARG(int, 0), Q_ARG(QString, message));
+
 		QMetaObject::invokeMethod(pd, "reject");
 		return;
 	}
@@ -935,7 +1006,7 @@ void QImport::run()
 	computeNodesDerivedTransform(scene, scene->mRootNode, scene->mRootNode->mTransformation);
 
 	mesh = Ogre::MeshManager::getSingleton().createManual(basename, Ogre::ResourceGroupManager::DEFAULT_RESOURCE_GROUP_NAME);
-
+	
 	if (mBonesByName.size())
 	{
 
@@ -962,6 +1033,9 @@ void QImport::run()
 	Ogre::v1::SkeletonPtr skeletonPtr;
 	if (mSkeleton)
 	{
+		QString message = QString("Root bone: %1");
+		message = message.arg(QString::fromStdString(mSkeleton->getRootBone()->getName()));
+		QMetaObject::invokeMethod(pd->parentWidget(), "writeLog", Q_ARG(int, 0), Q_ARG(QString, message));
 		/*if (!mQuietMode)
 		{
 			Ogre::LogManager::getSingleton().logMessage("Root bone: " + mSkeleton->getRootBones()[0]->getName());
@@ -999,8 +1073,7 @@ void QImport::run()
 	// We must indicate the bounding box
 	mesh->_setBounds(aabb);
 	mesh->_setBoundingSphereRadius((aabb.getMaximum() - aabb.getMinimum()).length() / 2);
-	mesh->load();
-
+	
 	if (skeletonPtr)
 	{
 		Ogre::v1::SkeletonSerializer skelSer;
@@ -1008,11 +1081,15 @@ void QImport::run()
 
 		mesh->setSkeletonName(mSkeleton->getName());
 
-		for (auto sm : mesh->getSubMeshes())
+		/*for (auto sm : mesh->getSubMeshes())
 		{
+			sm->_compileBoneAssignments();
 			sm->_buildBoneIndexMap();
-		}
+			sm->_buildBoneAssignmentsFromVertexData();
+		}*/
 	}
+
+	mesh->load();
 
 	QMetaObject::invokeMethod(pd, "SetMessasge", Q_ARG(QString, "Saving mesh"));
 	
@@ -1099,6 +1176,7 @@ void QOgreWidget::Initialize()
 
 	light->setType(Ogre::Light::LT_DIRECTIONAL);
 	light->setDirection(Ogre::Vector3(-1, -1, -1).normalisedCopy());
+	light->setPowerScale(Ogre::Math::PI);
 
 	// Create & setup camera
 	camera = sm->createCamera("Main Camera");
@@ -1204,7 +1282,7 @@ void QOgreWidget::render()
 	Ogre::WindowEventUtilities::messagePump();
 	if (root->isInitialised() && is_draw)
 	{
-		if (meshNode)
+		if (meshNode && meshNode->getAttachedObject(0)->getSkeletonInstance())
 		{
 			for (auto a : meshNode->getAttachedObject(0)->getSkeletonInstance()->getActiveAnimations())
 			{
@@ -1823,13 +1901,16 @@ Ogre::Mesh* QOgreWidget::LoadMesh(QString filename)
 
 	if (mesh.isNull() == false)
 	{
+		CreateScene(mesh);
+#if 0
 		Ogre::Item* item = sm->createItem(mesh);
-		
+
 		Ogre::SkeletonInstance* sk_inst = item->getSkeletonInstance();// ->getAnimation("Take 001");
 		if (sk_inst)
 		{
-			sk_inst->getAnimation("Idle")->setEnabled(true);
-			sk_inst->getAnimation("Idle")->setLoop(true);
+			//sk_inst->getAnimation("Idle")->setEnabled(true);
+			//sk_inst->getAnimation("Idle")->setLoop(true);
+			
 			//sk_inst->getAnimation("Idle")->addTime(1);
 			//sa->setEnabled(true);
 		}
@@ -1839,6 +1920,7 @@ Ogre::Mesh* QOgreWidget::LoadMesh(QString filename)
 		meshNode->attachObject((Ogre::MovableObject*)item);
 
 		camera->setPosition(Ogre::Vector3(0, mesh->getBoundingSphereRadius()/2.f,2*mesh->getBoundingSphereRadius()));
+#endif
 	}
 	//sm->createEntity()
 	return mesh.getPointer();
@@ -1850,15 +1932,19 @@ Ogre::MeshPtr QOgreWidget::LoadMeshV2(QString filename)
 		filename.remove(0, pos+1);
 
 	Ogre::MeshPtr mesh;
-	try
-	{
-		mesh = Ogre::MeshManager::getSingleton().load(filename.toStdString(), Ogre::ResourceGroupManager::AUTODETECT_RESOURCE_GROUP_NAME);
-	}
-	catch (Ogre::Exception& ex)
-	{
-		printf("%s\n", ex.what());
-	}
 
+	mesh = Ogre::MeshManager::getSingleton().getByName(filename.toStdString());
+	if (mesh.isNull())
+	{
+		try
+		{
+			mesh = Ogre::MeshManager::getSingleton().load(filename.toStdString(), Ogre::ResourceGroupManager::AUTODETECT_RESOURCE_GROUP_NAME);
+		}
+		catch (Ogre::Exception& ex)
+		{
+			printf("%s\n", ex.what());
+		}
+	}
 	return mesh;
 };
 Ogre::MeshPtr QOgreWidget::LoadMeshV1(QString filename)
@@ -1899,6 +1985,23 @@ Ogre::HlmsDatablock* QOgreWidget::GetMaterial(const char* name)
 {
 	return root->getHlmsManager()->getMaterial(name);
 };
+
+void view_bone(Ogre::Bone* bone, Ogre::ManualObject* obj)
+{
+	Ogre::Vector3 p_pos = bone->getPosition();
+
+	obj->position(p_pos);
+	if(bone->getParent())
+		obj->position(bone->getParent()->getPosition());
+	else
+		obj->position(p_pos+Ogre::Vector3(0,1,0));
+	obj->line(obj->getCurrentVertexCount() - 2, obj->getCurrentVertexCount() - 1);
+	for (size_t i = 0; i < bone->getNumChildren(); i++)
+	{
+		view_bone(bone->getChild(i), obj);
+	}
+}
+
 void QOgreWidget::CreateScene(Ogre::MeshPtr mesh)
 {
 	Ogre::Item* item = sm->createItem(mesh);
@@ -1907,18 +2010,99 @@ void QOgreWidget::CreateScene(Ogre::MeshPtr mesh)
 		sm->getRootSceneNode(Ogre::SCENE_DYNAMIC)->removeAndDestroyChild(meshNode);
 	}
 
-	Ogre::SkeletonAnimation* sa = item->getSkeletonInstance()->getAnimation("Take 001");
-	sa->setEnabled(true);
-	sa->setLoop(true);
-	//item->getSkeletonInstance()->update();
+	if (item->getSkeletonInstance())
+	{
+		Ogre::SkeletonInstance *sk_inst = item->getSkeletonInstance();
+
+		size_t boneCount = sk_inst->getNumBones();
+
+		Ogre::ManualObject* obj = sm->createManualObject();
+		obj->begin("Ogre/Debug/LinesMat", Ogre::OT_LINE_LIST);
+
+		for (size_t i = 0; i < boneCount; i++)
+		{
+			Ogre::Bone* bone = sk_inst->getBone(i);
+			//view_bone(bone, obj);
+		}
+		obj->end();
+		sm->getRootSceneNode()->attachObject(obj);
+
+		/*Ogre::ManualObject* obj = sm->createManualObject();
+		obj->begin("Ogre/Debug/LinesMat", Ogre::OT_LINE_LIST);
+
+		item->getSkeletonInstance()->update();
+
+		size_t boneCount = item->getSkeletonInstance()->getNumBones();
+		for (size_t ibone = 0; ibone < boneCount; ibone++)
+		{
+			Ogre::Bone* bone = item->getSkeletonInstance()->getBone(ibone);
+			size_t childCount = bone->getNumChildren();
+
+			Ogre::Matrix4 mat;
+			bone->_getFullTransformUpdated().store(&mat);
+
+			Ogre::Vector3 root_position = mat.getTrans();
+			for (size_t ichild = 0; ichild < childCount; ichild++)
+			{
+				Ogre::Bone* childBone = bone->getChild(ichild);
+				Ogre::Vector3 position = childBone->getPosition();
+
+				obj->index(obj->getCurrentVertexCount());
+				obj->position(root_position);
+
+				obj->index(obj->getCurrentVertexCount());
+				obj->position(position);
+			}
+		}
+		Ogre::Vector3 position = item->getSkeletonInstance()->getBone(0)->getPosition();
+		obj->position(position);
+		obj->position(position + Ogre::Vector3(0, 1, 0));
+		obj->index(0);
+		obj->index(1);
+		obj->end();
+
+		sm->getRootSceneNode()->attachObject(obj);*/
+	}
 
 	meshNode = sm->getRootSceneNode(Ogre::SCENE_DYNAMIC)->createChildSceneNode(Ogre::SCENE_DYNAMIC);
 
 	meshNode->attachObject((Ogre::MovableObject*)item);
 
-	camera->setPosition(Ogre::Vector3(0, mesh->getBoundingSphereRadius() / 2.f, mesh->getBoundingSphereRadius()));
+	camera->setPosition(mesh->getAabb().mCenter + Ogre::Vector3(0, 0, mesh->getBoundingSphereRadius()));
+	camera->lookAt(mesh->getAabb().mCenter);
 };
 Ogre::Mesh *QOgreWidget::GetMesh()
 { 
 	return ((Ogre::Item*)meshNode->getAttachedObject(0))->getMesh().getPointer();
 }
+unsigned long QOgreWidget::GetAnimationTicks(const char* name)
+{
+	Ogre::SkeletonInstance *inst = ((Ogre::Item*)meshNode->getAttachedObject(0))->getSkeletonInstance();
+	const Ogre::SkeletonAnimationVec anims = inst->getAnimations();
+	for (Ogre::SkeletonAnimationVec::const_iterator it = anims.begin(); it != anims.end(); it++)
+	{
+		if (it->getName() == name)
+		{
+			return it->getNumFrames();
+		}
+	}
+	return 0;
+};
+void QOgreWidget::PlayAnimation(const char* name, bool play)
+{
+	Ogre::SkeletonInstance* inst = ((Ogre::Item*)meshNode->getAttachedObject(0))->getSkeletonInstance();
+	const Ogre::ActiveAnimationsVec active = inst->getActiveAnimations();
+	if (active.empty() == false)
+		active[0]->setEnabled(false);
+	inst->getAnimation(name)->setEnabled(true);
+};
+void QOgreWidget::Save()
+{
+	Ogre::Mesh *mesh = GetMesh();
+	for (int index = 0; index < mesh->getNumSubMeshes(); index++)
+	{
+		std::string matName = mesh->getSubMesh(index)->getMaterialName();
+		Ogre::HlmsDatablock* material = GetMaterial(matName.c_str());
+		GetHlmsManager()->saveMaterial(material, "models/" + matName + ".material.json", 0, "");
+	}
+};

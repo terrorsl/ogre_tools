@@ -26,6 +26,8 @@ public:
 
 	Ogre::Mesh* Import(QString filename);
 
+	void Save();
+
 	Ogre::HlmsDatablock* GetMaterial(const char* name);
 	Ogre::HlmsManager* GetHlmsManager() { return root->getHlmsManager(); }
 	Ogre::RenderSystem* GetRenderSystem() { return root->getRenderSystem(); }
@@ -38,6 +40,10 @@ public:
 
 	void CreateScene(Ogre::MeshPtr mesh);
 	Ogre::Mesh *GetMesh();
+	Ogre::SceneNode* GetMeshNode() { return meshNode; }
+
+	unsigned long GetAnimationTicks(const char *name);
+	void PlayAnimation(const char* name, bool play);
 public slots:
 	bool eventFilter(QObject* target, QEvent* event);
 signals:

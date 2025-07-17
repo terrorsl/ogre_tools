@@ -1,5 +1,6 @@
 project(ogre_mesh_editor)
 
+set(CMAKE_AUTORCC ON)
 qt_standard_project_setup()
 
 set(SRC
@@ -7,6 +8,8 @@ set(SRC
 	src/mainwindow.cpp
 	src/qogrewidget.cpp
 	src/progress_dialog.cpp
+
+	icons/resource.qrc
 )
 set(UI_FILES
 	ui/mainwindow.ui
