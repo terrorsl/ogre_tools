@@ -1,0 +1,78 @@
+#ifndef LOGIC_SYSTEM_FILE
+#define LOGIC_SYSTEM_FILE
+
+#include"base_system.h"
+#include"game_object.h"
+
+#include <deque>
+
+class LogicSystem:public BaseSystem
+{
+public:
+    LogicSystem() :mCurrentTransformIdx(1), level(0)
+    {
+        // mCurrentTransformIdx is 1, 0 and NUM_GAME_ENTITY_BUFFERS - 1 are taken by GraphicsSytem at
+        // startup The range to fill is then [2; NUM_GAME_ENTITY_BUFFERS-1]
+        for (Ogre::uint32 i = 2; i < NUM_GAME_ENTITY_BUFFERS - 1; ++i)
+            mAvailableTransformIdx.push_back(i);
+    }
+    void FinishFrameParallel()
+    {
+        // Notify the GraphicsSystem we're done rendering this frame.
+        
+       size_t idxToSend = mCurrentTransformIdx;
+       
+       if (mAvailableTransformIdx.empty())
+       {
+           // Don't relinquish our only ID left.
+           // If you end up here too often, Graphics' thread is too slow,
+           // or you need to increase NUM_GAME_ENTITY_BUFFERS
+           idxToSend = std::numeric_limits<Ogre::uint32>::max();
+       }
+       else
+       {
+           // Until Graphics constantly releases the indices we send them, to avoid writing
+           // to transform data that may be in use by the other thread (race condition)
+           mCurrentTransformIdx = mAvailableTransformIdx.front();
+           mAvailableTransformIdx.pop_front();
+       }
+            
+       this->queueSendMessage(notify_system, LOGICFRAME_FINISHED, idxToSend);
+        BaseSystem::FinishFrameParallel();
+    }
+
+    void SetLevel(GameLevel* level);
+
+    virtual void AppendObject(GameObject* obj) = 0;
+private:
+	void processIncomingMessage(MessageId messageId, const void* data) {
+        switch (messageId)
+        {
+        case LOGICFRAME_FINISHED:
+            {
+                Ogre::uint32 newIdx = *reinterpret_cast<const Ogre::uint32*>(data);
+               // assert((mAvailableTransformIdx.empty() ||
+                 //   newIdx == (mAvailableTransformIdx.back() + 1) % NUM_GAME_ENTITY_BUFFERS) &&
+                   // "Indices are arriving out of order!!!");
+
+                mAvailableTransformIdx.push_back(newIdx);
+            }
+            break;
+        case GAME_ENTITY_SCHEDULED_FOR_REMOVAL_SLOT:
+            //mGameEntityManager->_notifyGameEntitiesRemoved(
+             //   *reinterpret_cast<const Ogre::uint32*>(data));
+            break;
+        case SDL_EVENT:
+            // TODO
+            break;
+        default:
+            break;
+        }
+	};
+
+    Ogre::uint32 mCurrentTransformIdx;
+    std::deque<Ogre::uint32> mAvailableTransformIdx;
+
+    GameLevel* level;
+};
+#endif

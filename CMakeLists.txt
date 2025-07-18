@@ -30,6 +30,7 @@ add_subdirectory(ogre_studio)
 add_subdirectory(ogre_mesh_editor)
 add_subdirectory(ogre_material_editor)
 add_subdirectory(example/ogre_export_plugin)
+add_subdirectory(example/ogre_game)
 
 set(ASSIMP_BUILD_TESTS OFF)
 set(BUILD_SHARED_LIBS OFF)
