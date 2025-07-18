@@ -48,6 +48,8 @@ public slots:
 	void py_valueChanged(double);
 	//void pz_valueChanged(double);
 
+	void ry_valueChanged(double);
+
 	void range_light_valueChanged(double);
 
 	void diffuse_light_pressed();

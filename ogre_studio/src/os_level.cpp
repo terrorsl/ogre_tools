@@ -39,6 +39,8 @@ OgreStudioLevel::OgreStudioLevel(std::string& name, Ogre::Root *_root, Ogre::Sce
 	sm->setSky(true, Ogre::SceneManager::SkyCubemap, "stormy.dds", Ogre::ResourceGroupManager::AUTODETECT_RESOURCE_GROUP_NAME);
 
 	selectedNode = sm->createWireAabb();
+
+	//sm->setAmbientLight()
 	//set_object_type((Ogre::SceneNode*)selectedNode, OgreStudioObjectType_Helper);
 };
 OgreStudioLevel::~OgreStudioLevel()
@@ -168,7 +170,7 @@ Ogre::SceneNode* OgreStudioLevel::CreateDynamicObject(std::string& name)
 	item->setCastShadows(true);
 	Ogre::SceneNode* node = sm->getRootSceneNode()->createChildSceneNode();
 	node->attachObject((Ogre::MovableObject*)item);
-	node->setName("object");
+	node->setName(name);
 	set_object_type(node, OgreStudioObjectType_Mesh);
 	return node;
 };

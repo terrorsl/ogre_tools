@@ -169,7 +169,7 @@ void OgreStudioVertexIndexToShape::addIndexData(const char* data, Ogre::IndexTyp
 		}
 	}
 };
-btBvhTriangleMeshShape* OgreStudioVertexIndexToShape::createTrimesh()
+btCollisionShape* OgreStudioVertexIndexToShape::createTrimesh(bool is_static)
 {
 	btTriangleMesh* trimesh = new btTriangleMesh(true, false);
 	unsigned int numFaces = indexCount / 3;
@@ -193,7 +193,13 @@ btBvhTriangleMeshShape* OgreStudioVertexIndexToShape::createTrimesh()
 
 		trimesh->addTriangle(vertexPos[0], vertexPos[1], vertexPos[2]);
 	}
-	btBvhTriangleMeshShape* shape = new btBvhTriangleMeshShape(trimesh, true);
+	if (is_static)
+	{
+		btCollisionShape* shape = new btBvhTriangleMeshShape(trimesh, true);
+		shape->setMargin(0.5f);
+		return shape;
+	}
+	btCollisionShape *shape = new btConvexTriangleMeshShape(trimesh);
 	return shape;
 };
 btConvexHullShape* OgreStudioVertexIndexToShape::createConvex()
@@ -203,7 +209,7 @@ btConvexHullShape* OgreStudioVertexIndexToShape::createConvex()
 	return shape;
 };
 
-OgrestudioPhysicsDebugDraw::OgrestudioPhysicsDebugDraw(Ogre::ManualObject* line, btDiscreteDynamicsWorld* world):lines(line),debugMode(DBG_DrawWireframe)
+OgrestudioPhysicsDebugDraw::OgrestudioPhysicsDebugDraw(Ogre::ManualObject* line, btDiscreteDynamicsWorld* world):lines(line),debugMode(DBG_DrawAabb)
 {
 	world->setDebugDrawer(this);
 };
@@ -297,7 +303,8 @@ void OgreStudioPhysics::Initialize()
 };
 void OgreStudioPhysics::Update(float dt)
 {
-	dynamicsWorld->stepSimulation(dt, 10);
+	dynamicsWorld->stepSimulation(dt, 7);
+	
 	if (debugDraw)
 		debugDraw->update(dynamicsWorld);
 
@@ -332,23 +339,32 @@ void OgreStudioPhysics::AppendObject(Ogre::SceneNode* node)
 	btTransform transform;
 	//transform.setOrigin(btVector3(0,0,));
 	transform.setIdentity();
-	transform.setRotation(btQuaternion(node->getOrientation().x, node->getOrientation().y, node->getOrientation().z, node->getOrientation().w));
+	//transform.setRotation(btQuaternion(node->getOrientation().x, node->getOrientation().y, node->getOrientation().z, node->getOrientation().w));
 	
 	OgreStudioVertexIndexToShape v(node);
 
-	//delete v.createTrimesh();
-	btCollisionShape* shape = v.createTrimesh();
+	btCollisionShape* shape;
 	//btCollisionShape* shape = v.createConvex();
 	//btCollisionShape* shape=new btBoxShape(btVector3(aabb.mHalfSize.x, aabb.mHalfSize.y, aabb.mHalfSize.z));
 
+	btVector3 inertia(0, 0, 0);
 	btScalar mass = 0.f;
 	if (node->isStatic()==false)
 	{
 		mass = 1;
+		Ogre::Vector3 size=((Ogre::Item*)node->getAttachedObject(0))->getMesh()->getAabb().getSize();
+		shape = new btBoxShape(btVector3(size.x/2, size.y/2, size.z/2));
+		shape->calculateLocalInertia(mass, inertia);
+		//transform.setOrigin(btVector3(0, size.y / 2, 0));
 	}
+	else
+		shape = v.createTrimesh(node->isStatic());
 	btMotionState* motionState = OS_NEW OgreStudioPhysicsMotionState(node);
-	btRigidBody::btRigidBodyConstructionInfo rbInfo(mass, motionState, shape);
+	btRigidBody::btRigidBodyConstructionInfo rbInfo(mass, motionState, shape, inertia);
 	btRigidBody* body = new btRigidBody(rbInfo);
+
+	((OgreStudioPhysicsMotionState*)motionState)->setBody(body);
+	//body->setCenterOfMassTransform(transform);
 	//body->setRestitution
 	body->setUserPointer(node);
 	dynamicsWorld->addRigidBody(body);
@@ -389,4 +405,23 @@ bool OgreStudioPhysics::IsObjectInWorld(Ogre::SceneNode* node)
 			return true;
 	}
 	return false;
+};
+void OgreStudioPhysics::SetTransform(Ogre::SceneNode* node)
+{
+	for (int index = 0; index < dynamicsWorld->getNumCollisionObjects(); index++)
+	{
+		btRigidBody* body = btRigidBody::upcast(dynamicsWorld->getCollisionObjectArray()[index]);
+		if (node == body->getUserPointer())
+		{
+			btTransform transform;
+			transform.setOrigin(btVector3(node->getPosition().x, node->getPosition().y, node->getPosition().z));
+			transform.setRotation(btQuaternion(node->getOrientation().x, node->getOrientation().y, node->getOrientation().z, node->getOrientation().w));
+			body->setWorldTransform(transform);
+			if (body->isStaticObject() == false)
+			{
+				body->activate(true);
+			}
+			return;
+		}
+	}
 };

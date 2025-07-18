@@ -33,7 +33,7 @@ public:
 	OgreStudioVertexIndexToShape(Ogre::SceneNode *node);
 	~OgreStudioVertexIndexToShape();
 
-	btBvhTriangleMeshShape* createTrimesh();
+	btCollisionShape* createTrimesh(bool is_static);
 	btConvexHullShape* createConvex();
 private:
 	void addVertexData(Ogre::VertexArrayObject::ReadRequests buffer, Ogre::Matrix4 tr);
@@ -62,8 +62,11 @@ public:
 		node->setOrientation(rot.w(), rot.x(), rot.y(), rot.z());
 		node->setPosition(pos.x(), pos.y(), pos.z());
 	}
+
+	void setBody(btRigidBody* _body) { body = _body; }
 private:
 	Ogre::SceneNode* node;
+	btRigidBody* body;
 };
 
 class OgreStudioPhysics
@@ -77,6 +80,8 @@ public:
 	void New(Ogre::SceneManager *sm);
 	void AppendObject(Ogre::SceneNode* node);
 	void RemoveObject(Ogre::SceneNode* node);
+
+	void SetTransform(Ogre::SceneNode* node);
 
 	bool IsObjectInWorld(Ogre::SceneNode* node);
 private:

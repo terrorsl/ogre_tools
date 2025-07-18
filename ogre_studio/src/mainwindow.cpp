@@ -23,6 +23,8 @@ MainWindow::MainWindow():ui(new Ui::MainWindow()), level(0)
 	QObject::connect(ui->px, SIGNAL(valueChanged(double)), this, SLOT(px_valueChanged(double)));
 	QObject::connect(ui->py, SIGNAL(valueChanged(double)), this, SLOT(py_valueChanged(double)));
 
+	QObject::connect(ui->ry, SIGNAL(valueChanged(double)), this, SLOT(ry_valueChanged(double)));
+
 	QObject::connect(ui->range_light, SIGNAL(valueChanged(double)), this, SLOT(range_light_valueChanged(double)));
 
 	QObject::connect(ui->diffuse_light, SIGNAL(pressed()), this, SLOT(diffuse_light_pressed()));
@@ -148,6 +150,14 @@ void MainWindow::UpdateCommonProperties(Ogre::SceneNode* node)
 	ui->px->setValue(position.x);
 	ui->px->blockSignals(false);
 
+	ui->py->blockSignals(true);
+	ui->py->setValue(position.y);
+	ui->py->blockSignals(false);
+
+	ui->pz->blockSignals(true);
+	ui->pz->setValue(position.z);
+	ui->pz->blockSignals(false);
+
 	if (physic->IsObjectInWorld(node))
 	{
 		if(node->isStatic())
@@ -171,6 +181,20 @@ void MainWindow::py_valueChanged(double value)
 	Ogre::Vector3 p = node->getPosition();
 	p.y = value;
 	node->setPosition(p);
+
+	physic->SetTransform(node);
+};
+void MainWindow::ry_valueChanged(double value)
+{
+	Ogre::Matrix3 mat;
+	Ogre::SceneNode* node = (Ogre::SceneNode*)ui->levelTree->currentItem()->data(0, Qt::UserRole).value<void*>();
+	Ogre::Quaternion q = node->getOrientation();
+	//Ogre::Radian p = q.getPitch();
+	Ogre::Radian y = q.getYaw();
+	Ogre::Radian r = q.getRoll();
+	mat.FromEulerAnglesXYZ(y, Ogre::Degree(value), r);
+	q.FromRotationMatrix(mat);
+	node->setOrientation(q);
 };
 void MainWindow::range_light_valueChanged(double range)
 {
@@ -220,7 +244,7 @@ void MainWindow::specular_light_pressed()
 void MainWindow::renderOgre()
 {
 	ui->ogrewidget->render();
-	physic->Update(30);
+	physic->Update(1.f/30.f);
 };
 void MainWindow::on_actionNew_triggered()
 {
@@ -381,7 +405,7 @@ void MainWindow::AppendLevel(OgreStudioObjectType type, void *data, std::string 
 	else
 		_name = name.c_str();
 	_name = _name.arg(root->childCount());
-	child->setText(0, _name);
+	child->setText(0, QString::fromStdString(name));
 	child->setData(0, Qt::UserRole, QVariant::fromValue(data));
 	child->setFlags(child->flags() | Qt::ItemIsEditable);
 	root->addChild(child);
